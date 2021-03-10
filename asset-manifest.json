@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/bobs-your-uncle/front-end/static/css/main.9d5b29c0.chunk.css",
+    "main.js": "/bobs-your-uncle/front-end/static/js/main.086bb632.chunk.js",
+    "main.js.map": "/bobs-your-uncle/front-end/static/js/main.086bb632.chunk.js.map",
+    "runtime-main.js": "/bobs-your-uncle/front-end/static/js/runtime-main.af58234c.js",
+    "runtime-main.js.map": "/bobs-your-uncle/front-end/static/js/runtime-main.af58234c.js.map",
+    "static/js/2.8d67b619.chunk.js": "/bobs-your-uncle/front-end/static/js/2.8d67b619.chunk.js",
+    "static/js/2.8d67b619.chunk.js.map": "/bobs-your-uncle/front-end/static/js/2.8d67b619.chunk.js.map",
+    "static/js/3.4b4d2615.chunk.js": "/bobs-your-uncle/front-end/static/js/3.4b4d2615.chunk.js",
+    "static/js/3.4b4d2615.chunk.js.map": "/bobs-your-uncle/front-end/static/js/3.4b4d2615.chunk.js.map",
+    "index.html": "/bobs-your-uncle/front-end/index.html",
+    "static/css/main.9d5b29c0.chunk.css.map": "/bobs-your-uncle/front-end/static/css/main.9d5b29c0.chunk.css.map",
+    "static/js/2.8d67b619.chunk.js.LICENSE.txt": "/bobs-your-uncle/front-end/static/js/2.8d67b619.chunk.js.LICENSE.txt",
+    "static/media/logo.6ce24c58.svg": "/bobs-your-uncle/front-end/static/media/logo.6ce24c58.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.af58234c.js",
+    "static/js/2.8d67b619.chunk.js",
+    "static/css/main.9d5b29c0.chunk.css",
+    "static/js/main.086bb632.chunk.js"
+  ]
+}
