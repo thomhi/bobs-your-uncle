@@ -1,11 +1,30 @@
 version: "3.9"
 
-services: 
-  back-end:
-    build: .
-    ports: 
-     - 8888:3000
+services:
 
+  traefik:
+    image: traefik:2.4
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - "./traefik.toml:/traefik.toml"
+      - "./traefik_dynamic.toml:/traefik_dynamic.toml"
+    depends_on:
+      - service
+    networks:
+      - internal
+      - external
+    container_name: traefik
+
+  service:
+    build: .
+    networks:
+      - internal
+    deploy:
+      mode: replicated
+      replicas: 2
+  
   mongodb:
     image: mongo:4.4
     environment: 
@@ -16,5 +35,11 @@ services:
     volumes: 
      - data:/data/db
     container_name: bobsdb
+
 volumes: 
   data:
+
+networks:
+  external:
+  internal:
+    internal: true
