@@ -5,7 +5,7 @@ services:
   traefik:
     image: traefik:2.4
     ports:
-      - 80:80
+      - 5555:80
       - 8080:8080
     volumes:
       - "./traefik.toml:/traefik.toml"
@@ -19,22 +19,37 @@ services:
 
   service:
     build: .
+    labels:
+      - "traefik.http.routers.my-service.rule=PathPrefix(`/`)"
+      - traefik.http.services.my-service.loadBalancer.sticky.cookie.name=server_id
+      - traefik.http.services.my-service.loadBalancer.sticky.cookie.httpOnly=true
     networks:
       - internal
     deploy:
       mode: replicated
       replicas: 2
+    depends_on: 
+      - bobsdb
   
-  mongodb:
+  bobsdb:
     image: mongo:4.4
     environment: 
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
     ports: 
      - 7777:27017
+    networks:
+      - internal
+      - external
     volumes: 
      - data:/data/db
     container_name: bobsdb
+
+  redis:
+    image: redis
+    networks: 
+      - internal
+    container_name: redis
 
 volumes: 
   data:
