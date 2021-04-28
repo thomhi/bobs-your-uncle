@@ -8,8 +8,7 @@ const AnswerCard = require("../models/answerCard");
 const QuestionCard = require("../models/questionCards");
 const authRoute = require("../routes/auth");
 const jwt = require("jsonwebtoken");
-const socketioJwt = require("socketio-jwt");
-
+const socketioJwt = require('socketio-jwt');
 require("dotenv").config();
 
 const app = express();
@@ -67,29 +66,30 @@ async function getCards() {
 
 //io.adapter(redisAdapter({ host: 'redis', port: 6379 }));
 getCards();
-io.on(
-    "connection",
-    socketioJwt.authorize({
-      secret: "your secret or public key",
-      timeout: 15000, // 15 seconds to send the authentication message
-    })
-  )
-  .on("authenticated", (socket) => {
-    //this socket is authenticated, we are good to handle more events from it.
-    socket.on("joinRoom", ({ username, room }) => {
-      if (!games.has(room)) {
-        game = new Game(room, answerCards, questionCards);
-        games.set(room, game);
-        game.joinRoom(socket);
-      } else {
-        games.get(room).joinRoom(socket);
-      }
-      socket.on("startGame", () => {
-        game.startGame();
-      });
-      socket.on("answer", (cards) => {
-        game.receivedCards(cards, socket);
-      });
-    });
-  });
+io.use(socketioJwt.authorize({
+  secret: process.env.TOKEN_SECRET,
+  handshake: true
+}));
 
+io.on('connection', (socket) => {
+  console.log('hello!', socket.decoded_token._id);
+  socket.on("joinRoom", ({ _id, username, room }) => {
+    
+    if (!games.has(room)) {
+      console.log('joinRoom2');
+      game = new Game(room, answerCards, questionCards);
+      games.set(room, game);
+      game.joinRoom(socket);
+    } else {
+      games.get(room).joinRoom(socket);
+    }
+    socket.on("startGame", () => {
+      game.startGame();
+    });
+    socket.on("answer", (cards) => {
+      game.receivedCards(cards, socket);
+    });
+    // socket on winner receivedChoice
+    // socket newRound startRound
+  });
+});
