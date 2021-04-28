@@ -6,23 +6,33 @@ const Game = require('../game');
 const mongoose = require('mongoose');
 const AnswerCard = require('../models/answerCard');
 const QuestionCard = require('../models/questionCards');
+const authRoute = require('../routes/auth');
+const jwt = require('jsonwebtoken');
 
-import authRouter from '../src/authentication-controller/authRouter';
+require('dotenv').config();
 
 const app = express();
-app.use('/auth', authRouter);
+
+mongoose.connect("mongodb://root:password@localhost:7777/bobsDB?authSource=admin",{
+  useNewUrlParser: true, 
+  useUnifiedTopology: true 
+});
+
+app.use(express.json());
+
+app.use('/user', authRoute);
+
+
 //const server = app.listen(8080);
 const server = app.listen(9999);
+
 
 /*mongoose.connect("mongodb://root:password@bobsdb:27017/bobsDB?authSource=admin",{
   useNewUrlParser: true, 
   useUnifiedTopology: true 
 });*/
 
-mongoose.connect("mongodb://root:password@localhost:7777/bobsDB?authSource=admin",{
-  useNewUrlParser: true, 
-  useUnifiedTopology: true 
-});
+
 
 const io = socketio(server, {
   cors: {
@@ -43,7 +53,25 @@ async function getCards(){
 }
 
 //io.adapter(redisAdapter({ host: 'redis', port: 6379 }));
+async function verifyToken(socket,  next){
+  let xsrfToken = socket.handshake.headers['x-xsrf-token'];
+  let cookie = socket.request.headers.cookie;
 
+  if (cookie && xsrfToken) {
+    const token = parseCookie(cookie);
+    try {
+      socket.request.user = jwt.verify(token, process.env.TOKEN_SECRET);
+    } catch(err){
+      next(new Error("invalid"));
+      return;
+    }
+    next();
+  } else{
+    next(new Error("invalid"));
+  }
+}
+
+io.use((socket, next) => verifyToken(socket, next));
 getCards();
 io.on('connection', socket => {
   socket.on('joinRoom', ({ username, room }) => {
