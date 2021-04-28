@@ -11,6 +11,7 @@ import { Ranking } from "../components/Ranking";
 //import PlayCard from "../components/PlayCard";
 
 export default function PlayGame() {
+  
   const playCard = apiService.getPlayCard();
   const handCards = apiService.getHandCards();
   const players = apiService.getPlayers();

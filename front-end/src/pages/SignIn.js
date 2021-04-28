@@ -62,9 +62,10 @@ export default function SignIn({
     }
     authService
       .signIn(username, password)
-      .then(({ userID }) => {
+      .then(({jwt}) => {
         setIsAuthenticated(true);
-        localStorageService.setUserId(userID);
+        localStorageService.setUserId(username);
+        localStorageService.setJWT(jwt);
         setIsLoading(false);
         setRedirect(true);
       })
