@@ -18,6 +18,16 @@ mongoose.connect("mongodb://root:password@localhost:7777/bobsDB?authSource=admin
   useUnifiedTopology: true 
 });
 
+const allowCrossDomain = function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+};
+
+app.use(allowCrossDomain);
+
 app.use(express.json());
 
 app.use('/user', authRoute);
