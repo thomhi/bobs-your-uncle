@@ -1,14 +1,87 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { localStorageService } from "./businessLogic/LocalStroageService";
+import { authService } from "./businessLogic/AuthService";
+import PrivateRoute from "./components/PrivateRoute";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import PlayGame from "./pages/PlayGame";
+import Home from "./pages/Home";
+import Lobby from "./pages/Lobby";
+import { Container } from "@material-ui/core";
 
-function App() {
+/*
+const { userName, room } = Qs.parse(location.search, {
+  ignoreQueryPrefix: true,
+});
+
+const socket = io("http://localhost/9999", {
+  withCredentials: true,
+  transports: ["websocket"],
+});
+
+socket.on("message", (message) => {
+  console.log(message);
+});
+socket.emit("joinRoom", { userName, room });
+*/
+
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem("isAuthenticated") === "true" ? true : false
+  );
+  const [userID, setUserID] = useState(localStorageService.getUserId());
+
+  useEffect(() => {
+    localStorage.setItem("isAuthenticated", isAuthenticated.toString());
+    setUserID(localStorageService.getUserId());
+  }, [isAuthenticated]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src="https://tmh-images-live-prod.azureedge.net/formatBackgroundCharacters/9c111ce1-6869-42cb-837a-dd6fd0c7693b_300" className="App-logo" alt="logo" />
-      </header>
-    </div>
+    <Router>
+      <Container>
+        <Switch>
+          <Route
+            path="/bobs-your-uncle/signIn"
+            render={() => (
+              <SignIn
+                authService={authService}
+                localStorageService={localStorageService}
+                setIsAuthenticated={setIsAuthenticated}
+              />
+            )}
+          />
+          <PrivateRoute
+            exact
+            path="/bobs-your-uncle"
+            component={Home}
+            userID = {userID}
+            isAuthenticated={isAuthenticated}
+          />
+          <Route
+            path="/bobs-your-uncle/signUp"
+            render={() => (
+              <SignUp
+                authService={authService}
+                localStorageService={localStorageService}
+                setIsAuthenticated={setIsAuthenticated}
+              />
+            )}
+          />
+          <PrivateRoute
+            path="/bobs-your-uncle/playGame"
+            component={PlayGame}
+            userID = {userID}
+            isAuthenticated={isAuthenticated}
+          />
+          <PrivateRoute
+            path="/bobs-your-uncle/lobby"
+            component={Lobby}
+            userID = {userID}
+            isAuthenticated={isAuthenticated}
+          />
+        </Switch>
+      </Container>
+    </Router>
   );
 }
-
-export default App;
