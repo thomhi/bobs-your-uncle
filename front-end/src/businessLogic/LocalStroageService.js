@@ -3,34 +3,47 @@ export class LocalstorageService {
     this.localStorage = localStorage;
   }
 
-  setUserId(id) {
-    this.localStorage.setItem('userID', id);
+  setJWT(jwt) {
+    this.localStorage.setItem("jwt", jwt);
   }
 
-  getUserId() {
-    const result = this.localStorage.getItem('userID');
+  getJWT(jwt) {
+    const result = this.localStorage.getItem("jwt");
     if (result) {
       return result;
     } else {
-      return 'noUserID';
+      return "noJwt";
+    }
+  }
+
+  setUserId(id) {
+    this.localStorage.setItem("userID", id);
+  }
+
+  getUserId() {
+    const result = this.localStorage.getItem("userID");
+    if (result) {
+      return result;
+    } else {
+      return "noUserID";
     }
   }
 
   setTabIndex(id) {
-    this.localStorage.setItem('tabIndex', id);
+    this.localStorage.setItem("tabIndex", id);
   }
 
   getTabIndex() {
-    const result = this.localStorage.getItem('tabIndex');
+    const result = this.localStorage.getItem("tabIndex");
     if (result) {
       return result;
     } else {
-      return 'noTabIndex';
+      return "noTabIndex";
     }
   }
 
   userExists() {
-    return !!this.localStorage.getItem('userID');
+    return !!this.localStorage.getItem("userID");
   }
 }
 

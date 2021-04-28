@@ -10,22 +10,6 @@ import Home from "./pages/Home";
 import Lobby from "./pages/Lobby";
 import { Container } from "@material-ui/core";
 
-/*
-const { userName, room } = Qs.parse(location.search, {
-  ignoreQueryPrefix: true,
-});
-
-const socket = io("http://localhost/9999", {
-  withCredentials: true,
-  transports: ["websocket"],
-});
-
-socket.on("message", (message) => {
-  console.log(message);
-});
-socket.emit("joinRoom", { userName, room });
-*/
-
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem("isAuthenticated") === "true" ? true : false
@@ -55,7 +39,7 @@ export default function App() {
             exact
             path="/bobs-your-uncle"
             component={Home}
-            userID = {userID}
+            userID={userID}
             isAuthenticated={isAuthenticated}
           />
           <Route
@@ -71,13 +55,13 @@ export default function App() {
           <PrivateRoute
             path="/bobs-your-uncle/playGame"
             component={PlayGame}
-            userID = {userID}
+            userID={userID}
             isAuthenticated={isAuthenticated}
           />
           <PrivateRoute
             path="/bobs-your-uncle/lobby"
             component={Lobby}
-            userID = {userID}
+            userID={userID}
             isAuthenticated={isAuthenticated}
           />
         </Switch>

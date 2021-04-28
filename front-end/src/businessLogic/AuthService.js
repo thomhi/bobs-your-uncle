@@ -5,14 +5,14 @@ export class AuthService {
 
   async signIn(name, password) {
     return this.dataResource
-      .postJson(`/login`, { name, password })
+      .postJson(`/user/login`, { name, password })
       .then((response) => response.json());
   }
 
   async signUp(name, password) {
     console.log("authservice");
     return this.dataResource
-      .postJson(`/register`, { name, password })
+      .postJson(`/user/register`, { name, password })
       .then((response) => response.json());
   }
 }

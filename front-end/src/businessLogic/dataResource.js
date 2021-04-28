@@ -2,7 +2,6 @@ export default class DataResource {
   backendURL = "http://localhost:9999";
 
   postJson(endpoint, params) {
-    console.log("dataresource");
     return fetch(`${this.backendURL}${endpoint}`, {
       method: "POST",
       credentials: "include",
@@ -15,6 +14,14 @@ export default class DataResource {
       return this.checkStatus(e);
     });
   }
-}
 
-// export default dataResource = new DataResource();
+  checkStatus(response) {
+    if (response.status >= 200 && response.status < 300) {
+      return response;
+    } else {
+      const error = new Error(response.statusText);
+      error.response = response;
+      throw error;
+    }
+  }
+}
