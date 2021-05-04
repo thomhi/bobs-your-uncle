@@ -22,14 +22,18 @@ class Game{
     
 
     joinRoom(socket){
-        this.player.push(socket);
-        socket.join(this.room);
+      console.log('joinRoom');
+      this.player.push(socket);
+      socket.join(this.room);
+      // socket.emit("playersInLobby", [usernames])
+      // socket.emit.broadcast("playersInLobby", [usernames])
+      socket.emit("message", 'joined room')
     }
 
     startGame(){
-        this.player.forEach(socket => {
+        /*this.player.forEach(socket => {
             socket.broadcast.to(this.room).emit('message', 'game starting');
-        });
+        });*/
         let questionCard = this.questionCards[Math.floor(Math.random() * this.questionCards.length)];
         this.player.forEach(socket => {
           let playerAnswerCards = [];
@@ -37,7 +41,7 @@ class Game{
               playerAnswerCards.push(this.answerCards[Math.floor(Math.random() * this.answerCards.length)]);
           }
           this.playerHands.set(socket, playerAnswerCards);
-          socket.emit("message", {questionCard, playerAnswerCards});
+          socket.emit("handOutCards", {questionCard, playerAnswerCards});
       });
         this.decider = 0;
         this.startRound();
@@ -48,9 +52,10 @@ class Game{
       let questionCard = this.questionCards[Math.floor(Math.random() * this.questionCards.length)];
       this.player.forEach(socket => {
         let currentHand  = this.playerHands.get(socket);
-        socket.emit("message", {questionCard, currentHand});
+        socket.emit("handOutCards", {questionCard, currentHand});
       });
       this.player[this.decider].emit('message', 'decider');
+      // send score socket braoad cast send wins Map
     }
 
     receivedCards(cards, socket){
@@ -68,6 +73,7 @@ class Game{
             }
 
           }
+          // Change socket to username
           this.playerChosenHand.set(socket, array);
           console.log(this.playerChosenHand.entries());
         }
@@ -79,7 +85,7 @@ class Game{
     }
 
     sendChoices(){
-      socket.broadcast.to(this.room).emit('message', this.playerChosenHand);
+      socket.broadcast.to(this.room).emit('choices', this.playerChosenHand);
     }
 
     receivedChoice(socket, winnerSocket){
@@ -90,8 +96,9 @@ class Game{
           this.wins.set(winnerSocket, 1);
         }
       }
+      //socket. broadcast winnerAnnouncement {username, [cards]}
       this.decider++;
-      this.startRound();
+      //this.startRound();
     }
 
 }
