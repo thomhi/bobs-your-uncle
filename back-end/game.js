@@ -1,11 +1,12 @@
-const { RequestHeaderFieldsTooLarge } = require('http-errors');
 const AnswerCard = require('./models/answerCard');
 const QuestionCard = require('./models/questionCards');
 
 class Game{
     player = [];
+    sockets = new Map();
     questionCards = [];
     answerCards = [];
+    usernames = [];
     room;
     playerHands = new Map();
     playerChosenHand = new Map();
@@ -14,33 +15,32 @@ class Game{
     decider = 0;
 
     
-    constructor(room,answerCards, questionCards) {
+    constructor(room, answerCards, questionCards) {
         this.room = room;
         this.answerCards = answerCards;  
         this.questionCards = questionCards;
     }
     
 
-    joinRoom(socket){
+    joinRoom(socket, username){
       console.log('joinRoom');
-      this.player.push(socket);
+      this.player.push(username);
+      this.sockets.set(username, socket);
       socket.join(this.room);
-      // socket.emit("playersInLobby", [usernames])
-      // socket.emit.broadcast("playersInLobby", [usernames])
-      socket.emit("message", 'joined room')
+      socket.emit("message", 'joined room');
+      socket.emit("playersInLobby", this.player);
+      socket.to(this.room).emit("playersInLobby", this.player);
     }
 
     startGame(){
-        /*this.player.forEach(socket => {
-            socket.broadcast.to(this.room).emit('message', 'game starting');
-        });*/
         let questionCard = this.questionCards[Math.floor(Math.random() * this.questionCards.length)];
-        this.player.forEach(socket => {
+        this.player.forEach(username => {
+          const socket = this.sockets.get(username);
           let playerAnswerCards = [];
           for(let i = 0; i < 10; i++){
               playerAnswerCards.push(this.answerCards[Math.floor(Math.random() * this.answerCards.length)]);
           }
-          this.playerHands.set(socket, playerAnswerCards);
+          this.playerHands.set(username, playerAnswerCards);
           socket.emit("handOutCards", {questionCard, playerAnswerCards});
       });
         this.decider = 0;
@@ -50,55 +50,55 @@ class Game{
     startRound(){
       this.receivedCardsNum = 0;
       let questionCard = this.questionCards[Math.floor(Math.random() * this.questionCards.length)];
-      this.player.forEach(socket => {
-        let currentHand  = this.playerHands.get(socket);
+      this.player.forEach(username => {
+        const socket = this.sockets.get(username);
+        let currentHand  = this.playerHands.get(username);
         socket.emit("handOutCards", {questionCard, currentHand});
+        socket.emit("score", this.wins);
       });
-      this.player[this.decider].emit('message', 'decider');
-      // send score socket braoad cast send wins Map
+      const deciderSocket = this.sockets.get(this.player[this.decider]);
+      deciderSocket.emit('message', 'decider');
     }
 
-    receivedCards(cards, socket){
+    receivedCards(cards, socket, username){
         this.receivedCardsNum++;
         let array = [];
         
-        if(this.player[this.decider] !== socket){
-          for(let j = 0; j < this.playerHands.get(socket).length; j++){
+        if(this.player[this.decider] !== username){
+          for(let j = 0; j < this.playerHands.get(username).length; j++){
             for(let i = 0; i < cards.length; i++){
-                if(this.playerHands.get(socket)[j]._id == cards[i]._id){
-                    array.push(this.playerHands.get(socket)[j]);
-                    this.playerHands.get(socket)[j] = this.answerCards[Math.floor(Math.random() * this.answerCards.length)];
+                if(this.playerHands.get(username)[j]._id == cards[i]._id){
+                    array.push(this.playerHands.get(username)[j]);
+                    this.playerHands.get(username)[j] = this.answerCards[Math.floor(Math.random() * this.answerCards.length)];
                     break;
                 }
             }
 
           }
-          // Change socket to username
-          this.playerChosenHand.set(socket, array);
+          this.playerChosenHand.set(username, array);
           console.log(this.playerChosenHand.entries());
         }
         
         if(this.receivedCardsNum == this.player.length-1){
-            console.log('true boiii')
-            this.sendChoices();
+            this.sendChoices(socket);
         }
     }
 
-    sendChoices(){
-      socket.broadcast.to(this.room).emit('choices', this.playerChosenHand);
+    sendChoices(socket){
+      socket.emit('choices', this.playerChosenHand);
+      socket.to(this.room).emit('choices', this.playerChosenHand);
     }
 
-    receivedChoice(socket, winnerSocket){
-      if (socket === this.player[this.decider]) {
-        if (this.wins.get(winnerSocket) >= 1) {
-          this.wins.set(winnerSocket, this.wins.get(winnerSocket) + 1);
+    receivedChoice(socket, username, winnerUsername){
+      if (username === this.player[this.decider]) {
+        if (this.wins.get(winnerUsername) >= 1) {
+          this.wins.set(winnerUsername, this.wins.get(winnerUsername) + 1);
         } else {
-          this.wins.set(winnerSocket, 1);
+          this.wins.set(winnerUsername, 1);
         }
       }
-      //socket. broadcast winnerAnnouncement {username, [cards]}
+      socket.emit("winnerAnnouncement", {winnerUsername, cards: this.playerChosenHand.get(winnerUsername)});
       this.decider++;
-      //this.startRound();
     }
 
 }

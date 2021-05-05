@@ -13,11 +13,19 @@ require("dotenv").config();
 
 const app = express();
 
-mongoose.connect(
+/*mongoose.connect(
   "mongodb://root:password@localhost:7777/bobsDB?authSource=admin",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+  }
+);*/
+
+mongoose.connect(
+  "mongodb://root:password@bobsdb:27017/bobsDB?authSource=admin",
+  {
+    useNewUrlParser: true, 
+    useUnifiedTopology: true 
   }
 );
 
@@ -38,13 +46,10 @@ app.use(express.json());
 
 app.use("/user", authRoute);
 
-//const server = app.listen(8080);
-const server = app.listen(9999);
+const server = app.listen(8080);
+//const server = app.listen(9999);
 
-/*mongoose.connect("mongodb://root:password@bobsdb:27017/bobsDB?authSource=admin",{
-  useNewUrlParser: true, 
-  useUnifiedTopology: true 
-});*/
+
 
 const io = socketio(server, {
   cors: {
@@ -64,7 +69,7 @@ async function getCards() {
   questionCards = await QuestionCard.find({}).exec();
 }
 
-//io.adapter(redisAdapter({ host: 'redis', port: 6379 }));
+io.adapter(redisAdapter({ host: 'redis', port: 6379 }));
 getCards();
 io.use(socketioJwt.authorize({
   secret: process.env.TOKEN_SECRET,
@@ -72,24 +77,26 @@ io.use(socketioJwt.authorize({
 }));
 
 io.on('connection', (socket) => {
-  console.log('hello!', socket.decoded_token._id);
   socket.on("joinRoom", ({ _id, username, room }) => {
     
     if (!games.has(room)) {
-      console.log('joinRoom2');
       game = new Game(room, answerCards, questionCards);
       games.set(room, game);
-      game.joinRoom(socket);
+      game.joinRoom(socket, username);
     } else {
-      games.get(room).joinRoom(socket);
+      games.get(room).joinRoom(socket, username);
     }
     socket.on("startGame", () => {
       game.startGame();
     });
     socket.on("answer", (cards) => {
-      game.receivedCards(cards, socket);
+      game.receivedCards(cards, socket, username);
     });
-    // socket on winner receivedChoice
-    // socket newRound startRound
+    socket.on("winner", (username, winnerUsername) => {
+      game.receivedChoice(socket, username, winnerUsername);
+    });
+    socket.on("newRound", ()=>{
+      game.startGame();
+    });
   });
 });
