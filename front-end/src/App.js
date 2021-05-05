@@ -1,14 +1,13 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { localStorageService } from "./businessLogic/LocalStroageService";
 import { authService } from "./businessLogic/AuthService";
 import PrivateRoute from "./components/PrivateRoute";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import PlayGame from "./pages/PlayGame";
 import Home from "./pages/Home";
 import Lobby from "./pages/Lobby";
 import { Container } from "@material-ui/core";
+import { localStorageService } from "./businessLogic/LocalStroageService";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -51,12 +50,6 @@ export default function App() {
                 setIsAuthenticated={setIsAuthenticated}
               />
             )}
-          />
-          <PrivateRoute
-            path="/bobs-your-uncle/playGame"
-            component={PlayGame}
-            userID={userID}
-            isAuthenticated={isAuthenticated}
           />
           <PrivateRoute
             path="/bobs-your-uncle/lobby"

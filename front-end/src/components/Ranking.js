@@ -1,7 +1,13 @@
 import { Grid } from "@material-ui/core";
 import React from "react";
 
-export function Ranking({ players }) {
+export function Ranking({ playerPoints }) {
+
+  const players =[];
+  playerPoints.forEach((value, key, map) =>  {
+    players.push({player: key, points: value});
+  });
+    
   players.sort((a, b) => {
     return b.points - a.points;
   });

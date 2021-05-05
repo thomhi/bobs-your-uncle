@@ -15,36 +15,35 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const socket = io.connect("http://localhost:9999", {
-    extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
-  });
+  extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
+});
 
-  socket.on("message", (message) => {
-    console.log(message);
-  });
+socket.on("message", (message) => {
+  console.log(message);
+});
 
 export default function Home({ isAuthenticated }) {
   const classes = useStyles;
   const [redirect, setRedirect] = useState(false);
-  
+
   const onEnterLobby = () => {
     socket.emit("joinRoom", { username: "thom", room: "1" });
     setRedirect(true);
   };
-  
+
   if (redirect) {
     return <Redirect to={"/bobs-your-uncle/lobby"}></Redirect>;
   }
 
   return (
-    <Grid container className={classes.paper}>
+    <Grid container>
       <Grid item xs={12}>
         <ChangePageButton name="Login" goToPath="/bobs-your-uncle/signIn" />
       </Grid>
       <Grid item xs={2}></Grid>
       <Grid container item xs={8} spacing={5}>
         <Grid item xs={6}>
-          <Paper>
-            <form className="enterName" action="/bobs-your-uncle/lobby">
+          <Paper className={classes.paper}>
               <TextField
                 required
                 id="playerName"
@@ -53,25 +52,15 @@ export default function Home({ isAuthenticated }) {
                 autoFocus
                 fullWidth
               />
-              <Button
-                type="submit"
-                variant="outlined"
-                color="primary"
-                fullWidth
-              >
-                Create Table
-              </Button>
-            </form>
           </Paper>
         </Grid>
         <Grid item xs={6}>
-          <Paper elevation={2}>
-            <form className="enterTableCode">
+          <Paper className={classes.paper} elevation={2}>
               <TextField
                 required
-                id="enterTableCode"
-                label="enter Table Code..."
-                name="tableCode"
+                id="enterRoomName"
+                label="enter Room Name..."
+                name="roomName"
                 fullWidth
               />
               <Button
@@ -80,9 +69,8 @@ export default function Home({ isAuthenticated }) {
                 fullWidth
                 onClick={onEnterLobby}
               >
-                Enter Table
+                Enter Room
               </Button>
-            </form>
           </Paper>
         </Grid>
       </Grid>

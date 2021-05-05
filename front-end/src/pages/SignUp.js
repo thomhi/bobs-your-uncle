@@ -1,39 +1,17 @@
 import { useState } from "react";
-import { authenticationFormUseStyles } from "../styles/styles";
+import { gameStyle } from "../styles/styles";
 import { Redirect } from "react-router";
-import { Grid,TextField, CssBaseline, Avatar, Button, InputAdornment, IconButton, CircularProgress,Container, Typography } from "@material-ui/core";
+import { Grid,TextField, CssBaseline, Button, InputAdornment, IconButton, CircularProgress,Container, Typography } from "@material-ui/core";
 import {Visibility, VisibilityOff} from '@material-ui/icons';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-// import { makeStyles } from "@material-ui/core/styles";
 import BackButton from '../components/BackButton';
 import Error from '../components/Error';
-/*
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
-  },
-  form: {
-    width: "100%",
-    marginTop: theme.spacing(3),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-}));
-*/
+
 export default function SignUp({
   authService,
   localStorageService,
   setIsAuthenticated,
 }) {
-  const classes = authenticationFormUseStyles();
+  const classes = gameStyle();
   const [username, setUsername] = useState("");
   const [usernameTooShort, setUsernameTooShort] = useState(false);
   const [usernameUnchanged, setUsernameUnchanged] = useState(true);
@@ -139,9 +117,6 @@ export default function SignUp({
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar>
         <Typography component="h1" variant="h5">
           Sign Up
         </Typography>
@@ -276,7 +251,6 @@ export default function SignUp({
             ) : (
               "Sign Up"
             )}
-            Sign Up
           </Button>
           <BackButton redirectPath={"/bobs-your-uncle/signIn"} />
         </form>
