@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const socket = io.connect("http://localhost:9999", {
+const socket = io.connect("http://localhost:5555", {
   extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
 });
 
@@ -25,10 +25,19 @@ socket.on("message", (message) => {
 export default function Home({ isAuthenticated }) {
   const classes = useStyles;
   const [redirect, setRedirect] = useState(false);
+  const [room, setRoom] = useState("");
 
   const onEnterLobby = () => {
-    socket.emit("joinRoom", { username: "thom", room: "1" });
+    console.log('onenterLobby: ' + room)
+    socket.emit("joinRoom", {
+      username: localStorageService.getUserId(),
+      room: room,
+    });
     setRedirect(true);
+  };
+
+  const onChangeHandler = (event) => {
+    setRoom(event.target.value);
   };
 
   if (redirect) {
@@ -44,33 +53,35 @@ export default function Home({ isAuthenticated }) {
       <Grid container item xs={8} spacing={5}>
         <Grid item xs={6}>
           <Paper className={classes.paper}>
-              <TextField
-                required
-                id="playerName"
-                label="your Name"
-                name="playerName"
-                autoFocus
-                fullWidth
-              />
+            <TextField
+              required
+              id="playerName"
+              label="your Name"
+              name="playerName"
+              autoFocus
+              fullWidth
+            />
           </Paper>
         </Grid>
         <Grid item xs={6}>
           <Paper className={classes.paper} elevation={2}>
-              <TextField
-                required
-                id="enterRoomName"
-                label="enter Room Name..."
-                name="roomName"
-                fullWidth
-              />
-              <Button
-                variant="contained"
-                color="secondary"
-                fullWidth
-                onClick={onEnterLobby}
-              >
-                Enter Room
-              </Button>
+            <TextField
+              required
+              value={room}
+              id="enterRoomName"
+              label="enter Room Name..."
+              name="roomName"
+              onChange={onChangeHandler}
+              fullWidth
+            />
+            <Button
+              variant="contained"
+              color="secondary"
+              fullWidth
+              onClick={onEnterLobby}
+            >
+              Enter Room
+            </Button>
           </Paper>
         </Grid>
       </Grid>

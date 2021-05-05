@@ -26,7 +26,6 @@ export default function PlayGame({ STATE, socket }) {
     }
   }
 
-
   if (onEvaluation) {
     if (STATE.myTurn){
       return <SelectWinner choices={STATE.choices} playCard={STATE.playCard} socket={socket}></SelectWinner>

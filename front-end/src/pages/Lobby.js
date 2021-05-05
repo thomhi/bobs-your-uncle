@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Grid /*TextField*/ } from "@material-ui/core";
 import { Players } from "../components/Players";
 // import { gameSettings } from "../businessLogic/GameSettingsService";
@@ -17,7 +17,7 @@ const STATE = {
   winnerCard: "",
   roundWinner: "",
   resNumber: 2,
-  myTurn: true,
+  decider: false,
   playerPoints: new Map([['abi', 12], ['thom', 7], ['xXXJonas42069XxKillerBoy', -5], ['Tschoel', 4]]),
   choices: [['hallo', 'bello'], ['ciao', 'how'], ['ciao', 'how']],
 };
@@ -31,37 +31,41 @@ function mapToObject(value, key, map) {
   // } überarbeiten!!!
 }
 
-const socket = io.connect("http://localhost:9999", {
+const socket = io.connect("http://localhost:5555", {
   extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
 });
 
-socket.on("joinRoom", (players) => {
-  for (let player of players) {
-    STATE.players[player].name = player;
-    STATE.players[player].points = 0;
-  }
-});
-socket.on("playersInLobby", (players) => {
-  for (let player of players) {
-    STATE.players[player].name = player;
-    STATE.players[player].points = 0;
-  }
-});
-socket.on("handoutCards", (playCard, handCards) => {
-  STATE.handCards = handCards;
-  STATE.playCard = playCard;
-});
-socket.on("choices", (cards) => {
-  cards.forEach(mapToObject);
-});
-socket.on("winnerAnouncement", (player, card) => {
-  for (let p in STATE.players) {
-    if (player === p) {
-      STATE.players[p].points += 1;
-    }
-  }
-  STATE.roundWinner = player;
-  STATE.winnerCard = card;
+// socket.on("joinRoom", (players) => {
+//   for (let player of players) {
+//     STATE.players[player].name = player;
+//     STATE.players[player].points = 0;
+//   }
+// });
+// socket.on("playersInLobby", (players) => {
+//   for (let player of players) {
+//     STATE.players[player].name = player;
+//     STATE.players[player].points = 0;
+//   }
+// });
+// socket.on("handoutCards", (playCard, handCards) => {
+//   STATE.handCards = handCards;
+//   STATE.playCard = playCard;
+// });
+// socket.on("choices", (cards) => {
+//   cards.forEach(mapToObject);
+// });
+// socket.on("winnerAnouncement", (player, card) => {
+//   for (let p in STATE.players) {
+//     if (player === p) {
+//       STATE.players[p].points += 1;
+//     }
+//   }
+//   STATE.roundWinner = player;
+//   STATE.winnerCard = card;
+// });
+
+socket.on("playersInLobby", ({users}) => {
+  console.log(`Users: ${users}`);
 });
 
 export default function Lobby() {
@@ -69,6 +73,16 @@ export default function Lobby() {
 
   const [exitLobby, setExitLobby] = useState(false);
   const [playing, setPlaying] = useState(false);
+
+  const usersArr =[];
+
+  useEffect(() => {
+    console.log('useEffect:');
+    socket.on("playersInLobby", (users) => {
+      console.log(`Users: ${users}`);
+      usersArr = users;
+    });
+  }, []);
 
   const onPlayGame = () => {
     console.log("onplaygame (button clicked)");

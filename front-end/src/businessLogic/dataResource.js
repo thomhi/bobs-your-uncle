@@ -1,5 +1,5 @@
 export default class DataResource {
-  backendURL = "http://localhost:9999";
+  backendURL = "http://localhost:5555";
 
   postJson(endpoint, params) {
     return fetch(`${this.backendURL}${endpoint}`, {
