@@ -77,14 +77,17 @@ io.use(socketioJwt.authorize({
 }));
 
 io.on('connection', (socket) => {
-  socket.on("joinRoom", ({ _id, username, room }) => {
+  console.log('connected');
+  socket.on("joinRoom", ({ username, room }) => {
     
     if (!games.has(room)) {
       game = new Game(room, answerCards, questionCards);
       games.set(room, game);
       game.joinRoom(socket, username);
     } else {
-      games.get(room).joinRoom(socket, username);
+      if(!games.get(room).getPlayers().contains(username)) {
+        games.get(room).joinRoom(socket, username);
+      }
     }
     socket.on("startGame", () => {
       game.startGame();

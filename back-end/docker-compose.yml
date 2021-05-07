@@ -33,7 +33,8 @@ services:
   
   bobsdb:
     image: mongo:4.4
-    environment: 
+    environment:
+      MONGO_INITDB_DATABASE: bobsDB
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
     ports: 
@@ -43,6 +44,7 @@ services:
       - external
     volumes: 
      - data:/data/db
+     - ./initdb/initdb.js:/docker-entrypoint-initdb.d/initdb.js:ro
     container_name: bobsdb
 
   redis:

@@ -20,16 +20,22 @@ class Game{
         this.answerCards = answerCards;  
         this.questionCards = questionCards;
     }
+
+    getPlayers() {
+      return this.player;
+    }
     
 
     joinRoom(socket, username){
-      console.log('joinRoom');
       this.player.push(username);
       this.sockets.set(username, socket);
       socket.join(this.room);
       socket.emit("message", 'joined room');
-      socket.emit("playersInLobby", this.player);
-      socket.to(this.room).emit("playersInLobby", this.player);
+      socket.emit("playersInLobby", {users: this.player});
+      socket.to(this.room).emit("playersInLobby", {users: this.player});
+      console.log('joinRoom');
+      console.log('user: ' + username);
+      console.log('players: ' + this.player);
     }
 
     startGame(){
@@ -57,7 +63,7 @@ class Game{
         socket.emit("score", this.wins);
       });
       const deciderSocket = this.sockets.get(this.player[this.decider]);
-      deciderSocket.emit('message', 'decider');
+      deciderSocket.emit('isDecider', true);
     }
 
     receivedCards(cards, socket, username){
