@@ -9,18 +9,36 @@ export const gameStyle = makeStyles((theme) => ({
     flexDirection: "column",
     alignItems: "center",
   },
+  ranking: {
+    overflow: "hidden",
+    padding: "1%",
+    backgroundColor: "#eafac5",
+  },
+  rank: {
+    overflow: "hidden",
+  },
   selectedCard: {
     backgroundColor: "#DDDDDD",
     zIndex: 1,
   },
   playCard: {
-    backgroundColor: "#FFFFFF",
+    padding: "5%",
+    backgroundColor: "#f16054",
+    borderRadius: "20px",
+    fontWeight: "bold",
+    fontSize: "150%",
+    fontFamily: "inherit",
     zIndex: 1,
+  },
+  handCard: {
+    overflow: 'auto',
+    textAlign: 'start',
   },
   cardCombi: {
     border: "3px solid black",
     borderRadius: "20px",
   },
+  note: {},
   form: {
     width: "100%",
     marginTop: theme.spacing(1),
@@ -261,6 +279,16 @@ export const errorUseStyles = makeStyles({
   },
   title: {
     color: "#ff6565",
+  },
+  backdrop: {
+    color: "#fff",
+  },
+});
+
+export const hintStyle = makeStyles({
+  root: {
+    minWidth: 275,
+    textAlign: "left",
   },
   backdrop: {
     color: "#fff",

@@ -28,6 +28,22 @@ export class LocalstorageService {
       return "noUserID";
     }
   }
+  setRoom(room) {
+    this.localStorage.setItem("room", room);
+  }
+
+  getRoom() {
+    const result = this.localStorage.getItem("room");
+    if (result) {
+      return result;
+    } else {
+      return "not in a room";
+    }
+  }
+
+  exitRoom() {
+    this.localStorage.removeItem("room");
+  }
 
   setTabIndex(id) {
     this.localStorage.setItem("tabIndex", id);

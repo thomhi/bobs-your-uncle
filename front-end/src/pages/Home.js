@@ -1,38 +1,20 @@
 import ChangePageButton from "../components/ChangePageButton";
-import { TextField, Button, Grid, Paper, makeStyles } from "@material-ui/core";
-import { io } from "socket.io-client";
-import { useState } from "react";
+import { TextField, Button, Grid } from "@material-ui/core";
+import { useEffect, useState } from "react";
 import { localStorageService } from "../businessLogic/LocalStroageService";
 import { Redirect } from "react-router";
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-}));
-
-const socket = io.connect("http://localhost:5555", {
-  extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
-});
-
-socket.on("message", (message) => {
-  console.log(message);
-});
-
 export default function Home({ isAuthenticated }) {
-  const classes = useStyles;
   const [redirect, setRedirect] = useState(false);
   const [room, setRoom] = useState("");
 
+  useEffect(()=> {
+    return function setRoomInLocalStorage(){
+      localStorageService.setRoom(room);
+    };
+  })
+
   const onEnterLobby = () => {
-    console.log('onenterLobby: ' + room)
-    socket.emit("joinRoom", {
-      username: localStorageService.getUserId(),
-      room: room,
-    });
     setRedirect(true);
   };
 
@@ -51,38 +33,27 @@ export default function Home({ isAuthenticated }) {
       </Grid>
       <Grid item xs={2}></Grid>
       <Grid container item xs={8} spacing={5}>
-        <Grid item xs={6}>
-          <Paper className={classes.paper}>
-            <TextField
-              required
-              id="playerName"
-              label="your Name"
-              name="playerName"
-              autoFocus
-              fullWidth
-            />
-          </Paper>
+        <Grid item alignContent="center" alignItems="center" xs={7}>
+          <TextField
+            required
+            value={room}
+            id="enterRoomName"
+            label="enter Room Name..."
+            name="roomName"
+            onChange={onChangeHandler}
+            fullWidth
+          />
         </Grid>
-        <Grid item xs={6}>
-          <Paper className={classes.paper} elevation={2}>
-            <TextField
-              required
-              value={room}
-              id="enterRoomName"
-              label="enter Room Name..."
-              name="roomName"
-              onChange={onChangeHandler}
-              fullWidth
-            />
-            <Button
-              variant="contained"
-              color="secondary"
-              fullWidth
-              onClick={onEnterLobby}
-            >
-              Enter Room
-            </Button>
-          </Paper>
+        <Grid item alignContent="center" alignItems="center" xs={7}>
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            disabled={!room}
+            onClick={onEnterLobby}
+          >
+            Enter Room
+          </Button>
         </Grid>
       </Grid>
     </Grid>
