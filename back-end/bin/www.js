@@ -85,7 +85,7 @@ io.on('connection', (socket) => {
       games.set(room, game);
       game.joinRoom(socket, username);
     } else {
-      if(!games.get(room).getPlayers().contains(username)) {
+      if(!games.get(room).getPlayers().includes(username)) {
         games.get(room).joinRoom(socket, username);
       }
     }
