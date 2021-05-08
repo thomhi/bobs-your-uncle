@@ -10,62 +10,28 @@ import { io } from "socket.io-client";
 
 const STATE = {
   room: "",
-  I: "",
-  players: ["Abi", "thom", "xXXJonas42069XxKillerBoy", "Tschoel"],
-  playCard: "hello, there _________",
-  handCards: ["a", 'b', 'c'],
+  players: "",
+  playCard: "",
+  handCards: ['aaaaaaaaaaaaaaaaaa aaaaaaaaa aaaaaaaa aaaaaaaaaaa aaaaaaaaaaaa aaaaaaaa aaaaaaaaaaaaaaa aaaaaa aaaaaaa aaaaaaaaaaaaaa aaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaa'],
   winnerCard: "",
   roundWinner: "",
   resNumber: 2,
   decider: false,
-  playerPoints: new Map([['abi', 12], ['thom', 7], ['xXXJonas42069XxKillerBoy', -5], ['Tschoel', 4]]),
-  choices: [['hallo', 'bello'], ['ciao', 'how'], ['ciao', 'how']],
+  playerPoints: new Map([
+    ["abi", 12],
+    ["thom", 7],
+    ["Jonas", -5],
+    ["JoeEEEEEEEEEeeeeeeeeeeeeeeeel", 4],
+  ]),
+  choices: {
+    abi: ["lorem ipsum dolor", "sit amet"],
+    thom: ["f", "e"],
+    joel: ["d", "c"],
+  },
 };
-
-function mapToObject(value, key, map) {
-  // console.log(`m[${key}] = ${value}`);
-  // if (STATE.choices[value] === undefined) {
-  //   STATE.choices[value] = [key];
-  // } else {
-  //   STATE.choices[value].push(key);
-  // } überarbeiten!!!
-}
 
 const socket = io.connect("http://localhost:5555", {
   extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
-});
-
-// socket.on("joinRoom", (players) => {
-//   for (let player of players) {
-//     STATE.players[player].name = player;
-//     STATE.players[player].points = 0;
-//   }
-// });
-// socket.on("playersInLobby", (players) => {
-//   for (let player of players) {
-//     STATE.players[player].name = player;
-//     STATE.players[player].points = 0;
-//   }
-// });
-// socket.on("handoutCards", (playCard, handCards) => {
-//   STATE.handCards = handCards;
-//   STATE.playCard = playCard;
-// });
-// socket.on("choices", (cards) => {
-//   cards.forEach(mapToObject);
-// });
-// socket.on("winnerAnouncement", (player, card) => {
-//   for (let p in STATE.players) {
-//     if (player === p) {
-//       STATE.players[p].points += 1;
-//     }
-//   }
-//   STATE.roundWinner = player;
-//   STATE.winnerCard = card;
-// });
-
-socket.on("playersInLobby", ({users}) => {
-  console.log(`Users: ${users}`);
 });
 
 export default function Lobby() {
@@ -73,33 +39,54 @@ export default function Lobby() {
 
   const [exitLobby, setExitLobby] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [state, setState] = useState(STATE);
 
-  const usersArr =[];
+  socket.on("joinRoom", ({ users }) => {
+    console.log("players in Lobby on joinRoom: ", users);
+    for (let player of users) {
+      STATE.players[player] = player;
+    }
+    setState({ ...state, STATE });
+  });
+
+  socket.on("playersInLobby", ({ users }) => {
+    console.log("players in Lobby: ", users);
+    STATE.players = users;
+    setState({ ...state, STATE });
+  });
 
   useEffect(() => {
-    console.log('useEffect:');
-    socket.on("playersInLobby", (users) => {
-      console.log(`Users: ${users}`);
-      usersArr = users;
+    socket.emit("joinRoom", {
+      username: localStorageService.getUserId(),
+      room: localStorageService.getRoom(),
     });
+    console.log(
+      `${localStorageService.getUserId()} joined room ${localStorageService.getRoom()}`
+    );
+
+    return function cleanup() {
+      console.log(
+        `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
+      );
+      localStorageService.exitRoom();
+    };
   }, []);
 
   const onPlayGame = () => {
-    console.log("onplaygame (button clicked)");
-    socket.emit("startGame", {});
+    socket.emit("startGame");
+    console.log("game started");
     setPlaying(!playing);
   };
   const onExitLobby = () => {
-    console.log("onexitlobby (button clicked)");
-    socket.emit("exitLobby", { handCards: STATE.handCards });
     setExitLobby(!exitLobby);
   };
 
   if (playing) {
-    return <PlayGame STATE={STATE} socket={socket}></PlayGame>;
+    return <PlayGame STATE={state} socket={socket}></PlayGame>;
   }
 
   if (exitLobby) {
+    socket.emit("exitLobby", localStorageService.getUserId());
     return <Redirect to={"/bobs-your-uncle"}></Redirect>;
   }
 
@@ -111,7 +98,8 @@ export default function Lobby() {
       justify="space-evenly"
       spacing={5}
     >
-      <Players players={STATE.players} room={STATE.room} />
+      <h1>{`Room: ${localStorageService.getRoom()}`}</h1>
+      <Players players={state.players} />
       <form className="gameSettings" action="/bobs-your-uncle/playGame">
         <Grid container item alignContent="center" spacing={5} justify="center">
           {/* <Grid item className="gridItem" xs={4}>
@@ -134,11 +122,10 @@ export default function Lobby() {
               defaultValue={gameSettings.playTimePerRound}
             />
           </Grid> */}
-          <Grid item className="gridItem" xs={4}>
+          <Grid item className="gridItem" xs={11}>
             <Button
               fullWidth
               id="play-game-button"
-              type="submit"
               variant="contained"
               color="secondary"
               onClick={onPlayGame}
@@ -146,15 +133,17 @@ export default function Lobby() {
               Start Game
             </Button>
           </Grid>
-          <Button
-            fullWidth
-            id="exit-lobby-button"
-            variant="contained"
-            color="secondary"
-            onClick={onExitLobby}
-          >
-            Exit Lobby and Group
-          </Button>
+          <Grid item className="gridItem" xs={11}>
+            <Button
+              fullWidth
+              id="exit-lobby-button"
+              variant="contained"
+              color="secondary"
+              onClick={onExitLobby}
+            >
+              Exit Lobby and Group
+            </Button>
+          </Grid>
         </Grid>
       </form>
     </Grid>

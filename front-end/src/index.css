@@ -16,24 +16,8 @@ body {
   background-color: #fafafa;
 }
 
-.hand-card {
-  height: 20vh;
-  overflow-wrap: break-word;
-  align-content: flex-start;
-  overflow: hidden;
-  text-align: start;
-}
-
-.ranking-name {
-  overflow: hidden;
-}
-
 .play-card {
   height: 30vh;
   overflow-wrap: break-word;
   overflow: hidden;
-}
-
-.choosen, .play-card {
-  color: yellow;
 }

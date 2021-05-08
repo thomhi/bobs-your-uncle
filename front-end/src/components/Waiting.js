@@ -1,24 +1,31 @@
-import { Card, CardContent } from "@material-ui/core";
-import { useState } from "react";
+import { Backdrop, Card, CardContent } from "@material-ui/core";
+import { useEffect, useState } from "react";
+import { hintStyle } from "../styles/styles";
 
 export function Waiting({ text }) {
+  const classes = hintStyle();
   const [onWaitingText, setOnWaitingText] = useState(text);
+  const [open, setOpen] = useState(true);
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-//   let countDown = 5;
-//   function onWaiting(timeOut) {
-//     while (countDown > 0) {
-//       console.log("onElevation");
-//       setTimeout(() => {
-//         setOnWaitingText(onWaitingText + " .");
-//         countDown--;
-//       }, timeOut);
-//     }
-//   }
+  useEffect(() => {
+    setTimeout(() => {
+      setOnWaitingText(onWaitingText.length < text.length + 10 ? onWaitingText + " ." : text);
+    }, 1000);
+  });
 
   return (
-    <Card>
-      {/* {onWaiting(1000)} */}
-      <CardContent>{onWaitingText}</CardContent>
-    </Card>
+    <Backdrop
+      className={classes.backdrop}
+      open={open}
+      onClick={handleClose}
+      style={{ zIndex: 3 }}
+    >
+      <Card className={classes.root}>
+        <CardContent>{onWaitingText}</CardContent>
+      </Card>
+    </Backdrop>
   );
 }

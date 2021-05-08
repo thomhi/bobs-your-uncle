@@ -1,39 +1,46 @@
-import {
-  Paper,
-  Card,
-  CardContent,
-  Grid,
-  CardActionArea,
-} from "@material-ui/core";
+import { Card, CardContent, Grid, CardActionArea } from "@material-ui/core";
 import { gameStyle } from "../styles/styles";
+import { Waiting } from "./Waiting";
 
-export function SelectWinner({ choices, playCard, socket }) {
+export function SelectWinner({ choices, playCard, socket, decider }) {
   const classes = gameStyle();
+  const selection = [];
 
-  const numOfPlayers = choices.length;
+  const Task = () => {
+    if (decider) {
+      return <h1>select best answer</h1>;
+    } else {
+      return <Waiting text="Wait until Winner is selected"></Waiting>;
+    }
+  };
+
+  for (let choice of Object.values(choices)) {
+    selection.push(choice);
+  }
 
   const onSelect = (player) => {
     socket.emit("winner", player);
   };
 
   return (
-    <>
-      <Grid item spacing={5}>
-        {choices.map((player) => {
+    <Grid container justify="space-evenly" spacing={5}>
+      <Task />
+      <Grid container item spacing={5}>
+        {selection.map((player) => {
           return (
-            <Grid item xs={12 / numOfPlayers}>
+            <Grid key={player} item xs={4}>
               <Card
                 className={classes.cardCombi}
-                key={player}
                 onClick={() => {
                   onSelect(player);
                 }}
               >
                 <CardActionArea
-                className={classes.selectedCard}
+                  className={classes.selectedCard}
                   onClick={() => {
                     onSelect(player);
                   }}
+                  disabled={!decider}
                 >
                   {player.map((card) => {
                     return (
@@ -48,7 +55,9 @@ export function SelectWinner({ choices, playCard, socket }) {
           );
         })}
       </Grid>
-      <Grid item>{playCard}</Grid>
-    </>
+      <Grid item xs={9}>
+        <Card className={classes.playCard}>{playCard}</Card>
+      </Grid>
+    </Grid>
   );
 }
