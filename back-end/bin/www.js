@@ -119,9 +119,11 @@ sub.on('message', function (channel, message) {
       break;
     case "disconnect":
       console.log('disc');
-      games.get(obj.room).leaveRoom(obj.username, () => {
-        games.delete(obj.room);
-      });
+      if (games.get(obj.room) !== undefined) {
+        games.get(obj.room).leaveRoom(obj.username, () => {
+          games.delete(obj.room);
+        });
+      }
   }
 });
 
