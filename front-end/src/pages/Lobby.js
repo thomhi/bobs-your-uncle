@@ -12,6 +12,16 @@ const socket = io.connect("http://localhost:5555", {
   extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
 });
 
+const DEFAULT = {
+  playCard: 'why is there a _______ in my __________???',
+  handcards: ['fridge','tree', 'butt', 'Blubediblubb oihasfabfa iubndfoaisndan kjabscdfkja kjasbdak', 'lorem ipsum', 'dolor sit amet', 'but why?', 'Donald Trump', 'Donald Duck', 'King', 'Queen', 'idk' ],
+  winnerCards: ['apple', 'food'],
+  roundWinner: 'KingAbi',
+  resNumber: 2,
+  pointsPerPlayer: new Map([['abi', 12], ['thomas', 7],['JooooeeeEEEEEElllll', 5], ['Tschounes', -1532]]),
+  choices: new Map([['apple', 'abi'], ['food', 'abi'],['Truck', 'thomas'], ['Minime', 'thomas'],['a', 'JooooeeeEEEEEElllll'], ['b', 'JooooeeeEEEEEElllll'],['poop', 'Tschounes'], ['toilet', 'Tschounes']]),
+}
+
 export default function Lobby() {
   const classes = gameStyle();
   const room = localStorageService.getRoom();
@@ -20,10 +30,78 @@ export default function Lobby() {
   const [exitLobby, setExitLobby] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [players, setPlayers] = useState([]);
+  const [playState, setPlayState] = useState("selectCard");
+  const [playCard, setPlayCard] = useState(DEFAULT.playCard);
+  const [handCards, setHandCards] = useState(DEFAULT.handcards);
+  const [winnerCards, setWinnerCards] = useState("");
+  const [roundWinner, setRoundWinner] = useState("");
+  const [resNumber, setResNumber] = useState(DEFAULT.resNumber);
+  const [decider, setDecider] = useState(false);
+  const [pointsPerPlayer, setPointsPerPlayer] = useState(DEFAULT.pointsPerPlayer);
+  const [choices, setChoices] = useState(DEFAULT.choices);
 
   socket.on("playersInLobby", ({ users }) => {
     console.log("players in Lobby: ", users);
     setPlayers(users);
+  });
+
+  socket.on("isDecider", (isDecider) => {
+    console.log(`socket.on(idecider) isDecider: ${isDecider}`);
+    setDecider(isDecider);
+  });
+
+  socket.on("handOutCards", ({ questionCard, currentHand }) => {
+    console.log(`socket.on(handoutCards) handcards: `);
+    console.table(currentHand);
+    console.log(`socket.on(handoutCards) playcard: `);
+    console.table(questionCard);
+    if (questionCard && currentHand) {
+      setHandCards(currentHand);
+      setPlayCard(questionCard.content);
+      setResNumber(questionCard.numberOfFields);
+      console.log(`socket.on(handoutCards) handcards: ${handCards}`);
+      console.log(`socket.on(handoutCards) playcard: ${playCard}`);
+    } else {
+      setHandCards(DEFAULT.handcards);
+      setPlayCard(DEFAULT.playCard);
+      setResNumber(DEFAULT.resNumber);
+    }
+  });
+
+  socket.on("choices", ({ cards }) => {
+    console.log(`socket.on(choices) as Map: ${choices}`);
+    if (cards) {
+      let tempChoices;
+      for (let [key, value] of cards) {
+        if (tempChoices[value] === undefined) {
+          tempChoices[value] = [key];
+        } else {
+          tempChoices[value].push(key);
+        }
+      }
+      setChoices(tempChoices);
+      console.log(`socket.on(choices) as Object: ${choices}`);
+    } else {
+      setChoices(DEFAULT.choices);
+    }
+    setPlayState("showSelectedCards");
+  });
+
+  socket.on("winnerAnouncement", ({ player, cards, pointsPerPlayer }) => {
+    if (player && cards) {
+      console.log(
+        `socket.on(winnerAnouncement) winner: ${player}\nwith : ${cards}`
+      );
+      setWinnerCards(cards);
+      setRoundWinner(player);
+      setPointsPerPlayer(pointsPerPlayer);
+      setPlayState("showWinner");
+    } else {
+      setWinnerCards(DEFAULT.winnerCards);
+      setRoundWinner(DEFAULT.winner);
+      setPointsPerPlayer(DEFAULT.pointsPerPlayer);
+      setPlayState("showWinner");
+    }
   });
 
   useEffect(() => {
@@ -34,12 +112,13 @@ export default function Lobby() {
       `${localStorageService.getUserId()} joined room ${localStorageService.getRoom()}`
     );
 
-    return function cleanup() {
-      console.log(
-        `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
-      );
-      localStorageService.exitRoom();
-    };
+    // return function cleanup() {
+    //   console.log(
+    //     `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
+    //   );
+    //   localStorageService.exitRoom();
+    //   setExitLobby(true);
+    // };
   });
 
   const onPlayGame = () => {
@@ -52,7 +131,21 @@ export default function Lobby() {
   };
 
   if (playing) {
-    return <PlayGame me={player} socket={socket}></PlayGame>;
+    return (
+      <PlayGame
+        playState={playState}
+        playCard={playCard}
+        handCards={handCards}
+        winnerCards={winnerCards}
+        roundWinner={roundWinner}
+        resNumber={resNumber}
+        decider={decider}
+        pointsPerPlayer={pointsPerPlayer}
+        choices={choices}
+        me={player}
+        socket={socket}
+      ></PlayGame>
+    );
   }
 
   if (exitLobby) {
