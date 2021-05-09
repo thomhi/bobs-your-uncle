@@ -8,7 +8,7 @@ const AnswerCard = require("../models/answerCard");
 const QuestionCard = require("../models/questionCards");
 const authRoute = require("../routes/auth");
 const jwt = require("jsonwebtoken");
-const socketioJwt = require('socketio-jwt');
+const socketioJwt = require("socketio-jwt");
 var redis = require("redis");
 require("dotenv").config();
 
@@ -26,7 +26,7 @@ mongoose.connect(
   "mongodb://root:password@bobsdb:27017/bobsDB?authSource=admin",
   {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   }
 );
 
@@ -68,32 +68,34 @@ async function getCards() {
   questionCards = await QuestionCard.find({}).exec();
 }
 
-io.adapter(redisAdapter({ host: 'redis', port: 6379 }));
+io.adapter(redisAdapter({ host: "redis", port: 6379 }));
 
-io.use(socketioJwt.authorize({
-  secret: process.env.TOKEN_SECRET,
-  handshake: true
-}));
+io.use(
+  socketioJwt.authorize({
+    secret: process.env.TOKEN_SECRET,
+    handshake: true,
+  })
+);
 
 var pub = redis.createClient({
   port: 6379,
-  host: 'redis',
+  host: "redis",
 });
 var sub = redis.createClient({
   port: 6379,
-  host: 'redis',
+  host: "redis",
 });
 
-sub.subscribe('joinRoom');
-sub.subscribe('startGame');
-sub.subscribe('answer');
-sub.subscribe('winner');
-sub.subscribe('newRound');
-sub.subscribe('disconnect');
+sub.subscribe("joinRoom");
+sub.subscribe("startGame");
+sub.subscribe("answer");
+sub.subscribe("winner");
+sub.subscribe("newRound");
+sub.subscribe("disconnect");
 
-sub.on('message', function (channel, message) {
+sub.on("message", function (channel, message) {
   const obj = JSON.parse(message);
-  switch(channel){
+  switch (channel) {
     case "joinRoom":
       if (!games.has(obj.room)) {
         game = new Game(obj.room, answerCards, questionCards);
@@ -106,7 +108,7 @@ sub.on('message', function (channel, message) {
       }
       break;
     case "startGame":
-      games.get(message).startGame();
+      games.get(obj.room).startGame();
       break;
     case "answer":
       games.get(obj.room).receivedCards(obj.cards, obj.username);
@@ -115,10 +117,10 @@ sub.on('message', function (channel, message) {
       games.get(obj.room).receivedChoice(obj.username, obj.winnerUsername);
       break;
     case "newRound":
-      games.get(message).startRound();
+      games.get(obj.room).startRound();
       break;
     case "disconnect":
-      console.log('disc');
+      console.log("disc");
       if (games.get(obj.room) !== undefined) {
         games.get(obj.room).leaveRoom(obj.username, () => {
           games.delete(obj.room);
@@ -129,7 +131,7 @@ sub.on('message', function (channel, message) {
 
 getCards();
 
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   console.log(socket.decoded_token.username);
   let username = socket.decoded_token.username;
   socket.on("joinRoom", ({ room }) => {
@@ -137,18 +139,18 @@ io.on('connection', (socket) => {
     if (!games.has(room)) {
       game = new Game(room, answerCards, questionCards);
       games.set(room, game);
-      game.joinRoom(socket, username, (users) =>{
+      game.joinRoom(socket, username, (users) => {
         io.to(room).emit("playersInLobby", { users });
       });
     } else {
       if (!games.get(room).getPlayers().includes(username)) {
-        games.get(room).joinRoom(socket, username, (users) =>{
+        games.get(room).joinRoom(socket, username, (users) => {
           io.to(room).emit("playersInLobby", { users });
         });
       }
     }
     socket.on("startGame", () => {
-      pub.publish("startGame", room);
+      pub.publish("startGame", JSON.stringify({room}));
     });
     socket.on("answer", (cards) => {
       pub.publish("answer", JSON.stringify({ username, cards, room }));
@@ -157,10 +159,13 @@ io.on('connection', (socket) => {
       pub.publish("winner", JSON.stringify({ username, winnerUsername, room }));
     });
     socket.on("newRound", () => {
-      pub.publish("newRound", room);
+      pub.publish("newRound", JSON.stringify({room}));
     });
     socket.on("disconnect", () => {
-      pub.publish("disconnect", JSON.stringify({room, username}));
+      pub.publish("disconnect", JSON.stringify({ room, username }));
+    });
+    socket.on("exitLobby", () => {
+      pub.publish("disconnect", JSON.stringify({ room, username }));
     });
   });
 });
