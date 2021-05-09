@@ -7,7 +7,6 @@ import {
   FormControlLabel,
   Checkbox,
   Typography,
-  // makeStyles,
   Container,
   CircularProgress,
 } from "@material-ui/core";
@@ -15,23 +14,7 @@ import {authenticationFormUseStyles} from '../styles/styles';
 import {InputAdornment, IconButton} from '@material-ui/core';
 import {Visibility, VisibilityOff} from '@material-ui/icons';
 import Error from '../components/Error';
-/*
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  form: {
-    width: "100%",
-    marginTop: theme.spacing(1),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-}));
-*/
+
 export default function SignIn({
   authService,
   localStorageService,
@@ -63,6 +46,7 @@ export default function SignIn({
     authService
       .signIn(username, password)
       .then(({jwt}) => {
+        console.log(`${username} signed In\nwith JWT: ${jwt}`);
         setIsAuthenticated(true);
         localStorageService.setUserId(username);
         localStorageService.setJWT(jwt);

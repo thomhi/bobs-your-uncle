@@ -1,10 +1,4 @@
-import {
-  Grid,
-  Card,
-  CardContent,
-  Paper,
-  CardActionArea,
-} from "@material-ui/core";
+import { Grid, Card, CardContent, CardActionArea } from "@material-ui/core";
 import { useState } from "react";
 import { gameStyle } from "../styles/styles";
 import { SelectWinner } from "./SelectWinner";
@@ -12,77 +6,85 @@ import { Waiting } from "./Waiting";
 import { Ranking } from "./Ranking";
 import { WinnerCard } from "../components/WinnerCard";
 
-export default function PlayGame({ STATE, socket }) {
+const DEFAULT = {
+  playCard: 'why is there a _______ in my __________???',
+  handcards: ['fridge','tree', 'butt', 'Blubediblubb oihasfabfa iubndfoaisndan kjabscdfkja kjasbdak', 'lorem ipsum', 'dolor sit amet', 'but why?', 'Donald Trump', 'Donald Duck', 'King', 'Queen', 'idk' ],
+  winnerCards: ['apple', 'food'],
+  roundWinner: 'KingAbi',
+  resNumber: 2,
+  pointsPerPlayer: new Map([['abi', 12], ['thomas', 7],['JooooeeeEEEEEElllll', 5], ['Tschounes', -1532]]),
+  choices: new Map([['apple', 'abi'], ['food', 'abi'],['Truck', 'thomas'], ['Minime', 'thomas'],['a', 'JooooeeeEEEEEElllll'], ['b', 'JooooeeeEEEEEElllll'],['poop', 'Tschounes'], ['toilet', 'Tschounes']]),
+}
+
+export default function PlayGame({ me, socket }) {
   const classes = gameStyle();
   let number = 0;
   const selectedCards = [];
 
   const [playState, setPlayState] = useState("selectCard");
-  const [state, setState] = useState(STATE);
-
-  function mapToObject(value, key, map) {
-    console.log(`m[${key}] = ${value}`);
-    if (STATE.choices[value] === undefined) {
-      STATE.choices[value] = [key];
-    } else {
-      STATE.choices[value].push(key);
-    }
-  }
+  const [playCard, setPlayCard] = useState(DEFAULT.playCard);
+  const [handCards, setHandCards] = useState(DEFAULT.handcards);
+  const [winnerCards, setWinnerCards] = useState("");
+  const [roundWinner, setRoundWinner] = useState("");
+  const [resNumber, setResNumber] = useState(DEFAULT.resNumber);
+  const [decider, setDecider] = useState(false);
+  const [pointsPerPlayer, setPointsPerPlayer] = useState(DEFAULT.pointsPerPlayer);
+  const [choices, setChoices] = useState(DEFAULT.choices);
 
   socket.on("isDecider", ({ isDecider }) => {
-    STATE.decider = isDecider;
-    setState({ ...state, STATE });
+    if (isDecider) {
+      setDecider(isDecider);
+      console.log(`socket.on(idecider) isDecider: ${decider}`);
+    }
   });
 
-  socket.on("handOutCards", ({ questionCard, playerAnswerCards }) => {
-    // change while db is not empty
-    STATE.handCards = [
-      "hello",
-      "me",
-      "myself",
-      "and",
-      "I",
-      "why you",
-      "why me",
-      "and so on",
-      "blubbedi",
-      "blubb blubb",
-    ];
-    STATE.playCard = "why is there a __________ in my __________???";
-    console.log(`socket.on(handoutCards): ${STATE.handCards}`);
-    console.log(`socket.on(handoutCards): ${STATE.handCards}`);
-    setState({ ...state, STATE });
+  socket.on("handOutCards", ({ questionCard, playerAnswerCards, resNumber }) => {
+    if (questionCard && playerAnswerCards && resNumber) {
+      setHandCards(playerAnswerCards);
+      setPlayCard(questionCard);
+      setResNumber(resNumber);
+      console.log(`socket.on(handoutCards) handcards: ${handCards}`);
+      console.log(`socket.on(handoutCards) playcard: ${playCard}`);
+    } else {
+      setHandCards(DEFAULT.handcards);
+      setPlayCard(DEFAULT.playCard);
+      setResNumber(DEFAULT.resNumber);
+    }
   });
 
   socket.on("choices", ({ cards }) => {
-    if (!cards) {
-      return;
+    console.log(`socket.on(choices) as Map: ${choices}`);
+    if (cards) {
+      let tempChoices;
+      for (let [key, value] of cards) {
+        if (tempChoices[value] === undefined) {
+          tempChoices[value] = [key];
+        } else {
+          tempChoices[value].push(key);
+        }
+      }
+      setChoices(tempChoices);
+      console.log(`socket.on(choices) as Object: ${choices}`);
+    } else {
+      setChoices(DEFAULT.choices);
     }
-    cards.forEach(mapToObject);
-    setState({ ...state, STATE });
-    console.log(`socket.on(choices): ${STATE.choices}`);
+    setPlayState('showSelectedCards');
   });
 
-  socket.on("winnerAnouncement", ({ player, card }) => {
-    STATE.roundWinner = player;
-    setPlayState("showWinner");
-    setState({ ...state, STATE });
+  socket.on("winnerAnouncement", ({ player, cards, pointsPerPlayer }) => {
+    if (player && cards) {
+      console.log(`socket.on(winnerAnouncement) winner: ${player}\nwith : ${cards}`);
+      setWinnerCards(cards);
+      setRoundWinner(player);
+      setPointsPerPlayer(pointsPerPlayer);
+      setPlayState("showWinner");
+    } else {
+      setWinnerCards(DEFAULT.winnerCards);
+      setRoundWinner(DEFAULT.winner);
+      setPointsPerPlayer(DEFAULT.pointsPerPlayer);
+      setPlayState('showWinner');
+    }
   });
-
-  if (playState === "showSelectedCards") {
-    return (
-      <SelectWinner
-        choices={state.choices}
-        playCard={state.playCard}
-        socket={socket}
-        decider={state.decider}
-      ></SelectWinner>
-    );
-  }
-
-  if (playState === "showWinner") {
-    return <WinnerCard text={state.winnerCard}></WinnerCard>;
-  }
 
   const onSelect = (card) => {
     console.log(`clicked:\n${card}`);
@@ -92,14 +94,14 @@ export default function PlayGame({ STATE, socket }) {
       }
     }
     selectedCards.push(card);
-    if (selectedCards.length === STATE.resNumber) {
+    if (selectedCards.length === resNumber) {
       socket.emit("answer", selectedCards);
       setPlayState("showSelectedCards");
     }
   };
 
-  function IsDecider() {
-    if (STATE.decider) {
+  function IsDecider({ decider }) {
+    if (decider) {
       return (
         <Waiting
           text={
@@ -111,21 +113,43 @@ export default function PlayGame({ STATE, socket }) {
       return null;
     }
   }
+
+  if (playState === "showSelectedCards") {
+    return (
+      <SelectWinner
+        choices={choices}
+        playCard={playCard}
+        socket={socket}
+        decider={decider}
+      ></SelectWinner>
+    );
+  }
+
+  if (playState === "showWinner") {
+    return (
+      <WinnerCard playCard={playCard} winnerCards={winnerCards} winner={roundWinner}></WinnerCard>
+    );
+  }
+
   if (playState === "selectCard") {
     return (
       <>
-        <IsDecider className={classes.note} />
         <Grid container spacing={10}>
+          <IsDecider className={classes.note} decider={decider} />
           <Grid item xs={3}>
-            <Ranking id="ranking" playerPoints={STATE.playerPoints}></Ranking>
+            <Ranking
+              id="ranking"
+              me={me}
+              playerPoints={pointsPerPlayer}
+            ></Ranking>
           </Grid>
           <Grid item xs={8}>
             <Card color="secondary" className={classes.playCard}>
-              <CardContent>{STATE.playCard}</CardContent>
+              <CardContent>{playCard}</CardContent>
             </Card>
           </Grid>
           <Grid container item spacing={5}>
-            {STATE.handCards.map((card) => {
+            {handCards.map((card) => {
               return (
                 <Grid
                   key={card + number++}
@@ -136,7 +160,7 @@ export default function PlayGame({ STATE, socket }) {
                   <Card style={{ zIndex: 0 }}>
                     <CardActionArea
                       className={classes.selectedCard}
-                      disabled={state.decider}
+                      disabled={decider}
                       onClick={() => {
                         onSelect(card);
                       }}

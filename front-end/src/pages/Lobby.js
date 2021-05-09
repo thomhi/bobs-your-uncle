@@ -8,57 +8,27 @@ import { gameStyle } from "../styles/styles";
 import { localStorageService } from "../businessLogic/LocalStroageService";
 import { io } from "socket.io-client";
 
-const STATE = {
-  room: "",
-  players: "",
-  playCard: "",
-  handCards: ['aaaaaaaaaaaaaaaaaa aaaaaaaaa aaaaaaaa aaaaaaaaaaa aaaaaaaaaaaa aaaaaaaa aaaaaaaaaaaaaaa aaaaaa aaaaaaa aaaaaaaaaaaaaa aaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaa'],
-  winnerCard: "",
-  roundWinner: "",
-  resNumber: 2,
-  decider: false,
-  playerPoints: new Map([
-    ["abi", 12],
-    ["thom", 7],
-    ["Jonas", -5],
-    ["JoeEEEEEEEEEeeeeeeeeeeeeeeeel", 4],
-  ]),
-  choices: {
-    abi: ["lorem ipsum dolor", "sit amet"],
-    thom: ["f", "e"],
-    joel: ["d", "c"],
-  },
-};
-
 const socket = io.connect("http://localhost:5555", {
   extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
 });
 
 export default function Lobby() {
   const classes = gameStyle();
+  const room = localStorageService.getRoom();
+  const player = localStorageService.getUserId();
 
   const [exitLobby, setExitLobby] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [state, setState] = useState(STATE);
-
-  socket.on("joinRoom", ({ users }) => {
-    console.log("players in Lobby on joinRoom: ", users);
-    for (let player of users) {
-      STATE.players[player] = player;
-    }
-    setState({ ...state, STATE });
-  });
+  const [players, setPlayers] = useState([]);
 
   socket.on("playersInLobby", ({ users }) => {
     console.log("players in Lobby: ", users);
-    STATE.players = users;
-    setState({ ...state, STATE });
+    setPlayers(users);
   });
 
   useEffect(() => {
     socket.emit("joinRoom", {
-      username: localStorageService.getUserId(),
-      room: localStorageService.getRoom(),
+      room: room,
     });
     console.log(
       `${localStorageService.getUserId()} joined room ${localStorageService.getRoom()}`
@@ -70,19 +40,19 @@ export default function Lobby() {
       );
       localStorageService.exitRoom();
     };
-  }, []);
+  });
 
   const onPlayGame = () => {
     socket.emit("startGame");
     console.log("game started");
-    setPlaying(!playing);
+    setPlaying(true);
   };
   const onExitLobby = () => {
-    setExitLobby(!exitLobby);
+    setExitLobby(true);
   };
 
   if (playing) {
-    return <PlayGame STATE={state} socket={socket}></PlayGame>;
+    return <PlayGame me={player} socket={socket}></PlayGame>;
   }
 
   if (exitLobby) {
@@ -98,8 +68,8 @@ export default function Lobby() {
       justify="space-evenly"
       spacing={5}
     >
-      <h1>{`Room: ${localStorageService.getRoom()}`}</h1>
-      <Players players={state.players} />
+      <h1>{`Room: ${room}`}</h1>
+      <Players players={players} />
       <form className="gameSettings" action="/bobs-your-uncle/playGame">
         <Grid container item alignContent="center" spacing={5} justify="center">
           {/* <Grid item className="gridItem" xs={4}>

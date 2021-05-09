@@ -55,7 +55,7 @@ export default function SignUp({
     authService
       .signUp(username, password)
       .then(({ userID }) => {
-        console.log('signUp in then');
+        console.log(`${userID} signed Up`);
         localStorageService.setUserId(userID);
         setIsAuthenticated(true);
         setIsLoading(false);

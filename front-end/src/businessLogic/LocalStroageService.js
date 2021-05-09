@@ -37,7 +37,7 @@ export class LocalstorageService {
     if (result) {
       return result;
     } else {
-      return "not in a room";
+      return "<b>not in a room</b>";
     }
   }
 
