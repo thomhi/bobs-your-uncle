@@ -1,28 +1,36 @@
 import { Grid, Card, CardContent, CardActionArea } from "@material-ui/core";
-import { useState } from "react";
 import { gameStyle } from "../styles/styles";
 import { SelectWinner } from "./SelectWinner";
 import { Waiting } from "./Waiting";
 import { Ranking } from "./Ranking";
 import { WinnerCard } from "../components/WinnerCard";
 
-export default function PlayGame({ me, socket, playState, playCard, handCards, winnerCards, roundWinner, resNumber, decider, pointsPerPlayer, choices }) {
+export default function PlayGame({
+  me,
+  socket,
+  playState,
+  playCard,
+  handCards,
+  winnerCards,
+  roundWinner,
+  decider,
+  pointsPerPlayer,
+  choices,
+}) {
   const classes = gameStyle();
-  let number = 0;
   const selectedCards = [];
-  const [playingState, setPlayingState] = useState(playState);
 
   const onSelect = (card) => {
     console.log(`clicked:\n${card}`);
     for (let selectedCard of selectedCards) {
-      if (selectedCard === card) {
+      if (selectedCard._id === card._id) {
         return;
       }
     }
     selectedCards.push(card);
-    if (selectedCards.length === resNumber) {
+    if (selectedCards.length === playCard.numberOfFields) {
+      console.log('emit answers', selectedCards);
       socket.emit("answer", selectedCards);
-      setPlayingState("showSelectedCards");
     }
   };
 
@@ -40,7 +48,7 @@ export default function PlayGame({ me, socket, playState, playCard, handCards, w
     }
   }
 
-  if (playingState === "showSelectedCards") {
+  if (playState === "showSelectedCards") {
     return (
       <SelectWinner
         choices={choices}
@@ -51,55 +59,59 @@ export default function PlayGame({ me, socket, playState, playCard, handCards, w
     );
   }
 
-  if (playingState === "showWinner") {
+  if (playState === "showWinner") {
     return (
-      <WinnerCard playCard={playCard} winnerCards={winnerCards} winner={roundWinner}></WinnerCard>
+      <WinnerCard
+        playCard={playCard}
+        winnerCards={winnerCards}
+        winner={roundWinner}
+        socket={socket}
+        decider={decider}
+      ></WinnerCard>
     );
   }
 
-  if (playingState === "selectCard") {
+  if (playState === "selectCard") {
     return (
-      <>
-        <Grid container spacing={10}>
-          <IsDecider className={classes.note} decider={decider} />
-          <Grid item xs={3}>
-            <Ranking
-              id="ranking"
-              me={me}
-              playerPoints={pointsPerPlayer}
-            ></Ranking>
-          </Grid>
-          <Grid item xs={8}>
-            <Card color="secondary" className={classes.playCard}>
-              <CardContent>{playCard}</CardContent>
-            </Card>
-          </Grid>
-          <Grid container item spacing={5}>
-            {handCards.map((card) => {
-              return (
-                <Grid
-                  key={card + number++}
-                  className={classes.handCard}
-                  item
-                  xs={2}
-                >
-                  <Card style={{ zIndex: 0 }}>
-                    <CardActionArea
-                      className={classes.selectedCard}
-                      disabled={decider}
-                      onClick={() => {
-                        onSelect(card.content);
-                      }}
-                    >
-                      <CardContent>{card.content}</CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              );
-            })}
-          </Grid>
+      <Grid container spacing={10} justify="center">
+        <IsDecider className={classes.note} decider={decider} />
+        <Grid item xs={3}>
+          <Ranking
+            id="ranking"
+            me={me}
+            playerPoints={pointsPerPlayer}
+          ></Ranking>
         </Grid>
-      </>
+        <Grid item xs={8}>
+          <Card color="secondary" className={classes.playCard}>
+            <CardContent>{playCard.content}</CardContent>
+          </Card>
+        </Grid>
+        <Grid container item spacing={5}>
+          {handCards.map((card) => {
+            return (
+              <Grid
+                key={card}
+                className={classes.handCard}
+                item
+                xs={2}
+              >
+                <Card style={{ zIndex: 0 }}>
+                  <CardActionArea
+                    className={classes.selectedCard}
+                    disabled={decider}
+                    onClick={() => {
+                      onSelect(card);
+                    }}
+                  >
+                    <CardContent>{card.content}</CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Grid>
     );
   }
 }

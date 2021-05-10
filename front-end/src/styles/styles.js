@@ -33,6 +33,7 @@ export const gameStyle = makeStyles((theme) => ({
   handCard: {
     overflow: 'auto',
     textAlign: 'start',
+    vh: "10%"
   },
   cardCombi: {
     border: "3px solid black",

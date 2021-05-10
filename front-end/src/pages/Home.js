@@ -1,4 +1,3 @@
-import ChangePageButton from "../components/ChangePageButton";
 import { TextField, Button, Grid } from "@material-ui/core";
 import { useEffect, useState } from "react";
 import { localStorageService } from "../businessLogic/LocalStroageService";
@@ -27,10 +26,7 @@ export default function Home({ isAuthenticated }) {
   }
 
   return (
-    <Grid container>
-      <Grid item xs={12}>
-        <ChangePageButton name="Login" goToPath="/bobs-your-uncle/signIn" />
-      </Grid>
+    <Grid container justify="center">
       <Grid item xs={2}></Grid>
       <Grid container item xs={8} spacing={5}>
         <Grid item alignContent="center" alignItems="center" xs={7}>

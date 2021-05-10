@@ -13,14 +13,20 @@ const socket = io.connect("http://localhost:5555", {
 });
 
 const DEFAULT = {
-  playCard: 'why is there a _______ in my __________???',
-  handcards: ['fridge','tree', 'butt', 'Blubediblubb oihasfabfa iubndfoaisndan kjabscdfkja kjasbdak', 'lorem ipsum', 'dolor sit amet', 'but why?', 'Donald Trump', 'Donald Duck', 'King', 'Queen', 'idk' ],
-  winnerCards: ['apple', 'food'],
-  roundWinner: 'KingAbi',
-  resNumber: 2,
-  pointsPerPlayer: new Map([['abi', 12], ['thomas', 7],['JooooeeeEEEEEElllll', 5], ['Tschounes', -1532]]),
-  choices: new Map([['apple', 'abi'], ['food', 'abi'],['Truck', 'thomas'], ['Minime', 'thomas'],['a', 'JooooeeeEEEEEElllll'], ['b', 'JooooeeeEEEEEElllll'],['poop', 'Tschounes'], ['toilet', 'Tschounes']]),
-}
+  playCard: {_id: 1, content: "why is there a _______ in my __________???", numberOfFields: 2},
+  handcards: [{_id: 2, content: "fridge" }],
+  winnerCards: [{content: "apple", _id: 3}, {content: "food", _id:4}],
+  roundWinner: "KingAbi",
+  pointsPerPlayer: new Map([
+    ["abi", 12],
+    ["thomas", 7],
+    ["JooooeeeEEEEEElllll", 5],
+    ["Tschounes", -1532],
+  ]),
+  choices: new Map([
+    ['abi', [{content: 'apple', _id: 5 }, {content: 'food', _id: 6}]],
+  ]),
+};
 
 export default function Lobby() {
   const classes = gameStyle();
@@ -31,17 +37,17 @@ export default function Lobby() {
   const [playing, setPlaying] = useState(false);
   const [players, setPlayers] = useState([]);
   const [playState, setPlayState] = useState("selectCard");
-  const [playCard, setPlayCard] = useState(DEFAULT.playCard);
-  const [handCards, setHandCards] = useState(DEFAULT.handcards);
+  const [playCard, setPlayCard] = useState({});
+  const [handCards, setHandCards] = useState([]);
   const [winnerCards, setWinnerCards] = useState("");
   const [roundWinner, setRoundWinner] = useState("");
-  const [resNumber, setResNumber] = useState(DEFAULT.resNumber);
   const [decider, setDecider] = useState(false);
-  const [pointsPerPlayer, setPointsPerPlayer] = useState(DEFAULT.pointsPerPlayer);
+  const [pointsPerPlayer, setPointsPerPlayer] = useState(
+    DEFAULT.pointsPerPlayer
+  );
   const [choices, setChoices] = useState(DEFAULT.choices);
 
   socket.on("playersInLobby", ({ users }) => {
-    console.log("players in Lobby: ", users);
     setPlayers(users);
   });
 
@@ -51,56 +57,50 @@ export default function Lobby() {
   });
 
   socket.on("handOutCards", ({ questionCard, currentHand }) => {
-    console.log(`socket.on(handoutCards) handcards: `);
-    console.table(currentHand);
-    console.log(`socket.on(handoutCards) playcard: `);
-    console.table(questionCard);
     if (questionCard && currentHand) {
       setHandCards(currentHand);
-      setPlayCard(questionCard.content);
-      setResNumber(questionCard.numberOfFields);
-      console.log(`socket.on(handoutCards) handcards: ${handCards}`);
-      console.log(`socket.on(handoutCards) playcard: ${playCard}`);
+      setPlayCard(questionCard);
     } else {
       setHandCards(DEFAULT.handcards);
       setPlayCard(DEFAULT.playCard);
-      setResNumber(DEFAULT.resNumber);
     }
+    setPlayState("selectCard");
+    setPlaying(true);
   });
 
-  socket.on("choices", ({ cards }) => {
-    console.log(`socket.on(choices) as Map: ${choices}`);
-    if (cards) {
-      let tempChoices;
-      for (let [key, value] of cards) {
-        if (tempChoices[value] === undefined) {
-          tempChoices[value] = [key];
-        } else {
-          tempChoices[value].push(key);
-        }
-      }
-      setChoices(tempChoices);
-      console.log(`socket.on(choices) as Object: ${choices}`);
+  socket.on("choices", (cards) => {
+    console.log(`socket.on(choices) as Map: ${cards}`);
+    console.log(cards);
+    console.table(cards);
+    if(cards){
+    setChoices(cards);
     } else {
       setChoices(DEFAULT.choices);
     }
     setPlayState("showSelectedCards");
   });
 
-  socket.on("winnerAnouncement", ({ player, cards, pointsPerPlayer }) => {
-    if (player && cards) {
+  socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
+    console.log(`socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`);
+    console.log(winnerUsername);
+    console.table(cards);
+    if (winnerUsername && cards) {
       console.log(
-        `socket.on(winnerAnouncement) winner: ${player}\nwith : ${cards}`
+        `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
       );
       setWinnerCards(cards);
-      setRoundWinner(player);
-      setPointsPerPlayer(pointsPerPlayer);
+      setRoundWinner(winnerUsername);
       setPlayState("showWinner");
     } else {
       setWinnerCards(DEFAULT.winnerCards);
       setRoundWinner(DEFAULT.winner);
-      setPointsPerPlayer(DEFAULT.pointsPerPlayer);
       setPlayState("showWinner");
+    }
+  });
+
+  socket.on("score", (score) => {
+    if (score.size > 0) {
+      setPointsPerPlayer(score);
     }
   });
 
@@ -108,9 +108,6 @@ export default function Lobby() {
     socket.emit("joinRoom", {
       room: room,
     });
-    console.log(
-      `${localStorageService.getUserId()} joined room ${localStorageService.getRoom()}`
-    );
 
     // return function cleanup() {
     //   console.log(
@@ -138,7 +135,6 @@ export default function Lobby() {
         handCards={handCards}
         winnerCards={winnerCards}
         roundWinner={roundWinner}
-        resNumber={resNumber}
         decider={decider}
         pointsPerPlayer={pointsPerPlayer}
         choices={choices}
@@ -192,6 +188,7 @@ export default function Lobby() {
               variant="contained"
               color="secondary"
               onClick={onPlayGame}
+              disabled={players.length < 2}
             >
               Start Game
             </Button>

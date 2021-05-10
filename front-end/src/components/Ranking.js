@@ -3,6 +3,11 @@ import React from "react";
 import { gameStyle } from "../styles/styles";
 
 export function Ranking({ playerPoints, me }) {
+
+  if (!playerPoints){
+    return null;
+  }
+
   const classes = gameStyle();
 
   const players = [];
@@ -21,13 +26,13 @@ export function Ranking({ playerPoints, me }) {
         <Grid key={"player" + rank} container item xs={12} spacing={2}>
           <b>
             <Grid item xs={1}>
-              {rank++}.
+              <strong>{rank++}.</strong>
             </Grid>
             <Grid className={classes.rank} item xs={6}>
-              {player.player}
+              <strong>{player.player}</strong>
             </Grid>
             <Grid item xs={5}>
-              {player.points} points
+              <strong>{player.points} points</strong>
             </Grid>
           </b>
         </Grid>
