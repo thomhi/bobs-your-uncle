@@ -11,7 +11,6 @@ class Game {
   receivedCardsNum = 0;
   decider = 0;
 
-
   constructor(room, answerCards, questionCards) {
     this.room = room;
     this.answerCards = answerCards;
@@ -26,7 +25,7 @@ class Game {
     this.player.push(username);
     this.sockets.set(username, socket);
     socket.join(this.room);
-    socket.emit("message", 'joined room');
+    socket.emit("message", "joined room");
     callback(this.player);
     console.log(this.room);
     console.log(this.player);
@@ -43,7 +42,7 @@ class Game {
   leaveRoom(username, closeRoom) {
     this.player = this.player.filter((elem) => !(elem === username));
     this.sockets.delete(username);
-    this.sockets.forEach((value)=>{
+    this.sockets.forEach((value) => {
       value.emit("playersInLobby", { users: this.player });
     });
     console.log(this.player);
@@ -53,10 +52,12 @@ class Game {
   }
 
   startGame() {
-    this.player.forEach(username => {
+    this.player.forEach((username) => {
       let playerAnswerCards = [];
       for (let i = 0; i < 10; i++) {
-        playerAnswerCards.push(this.answerCards[Math.floor(Math.random() * this.answerCards.length)]);
+        playerAnswerCards.push(
+          this.answerCards[Math.floor(Math.random() * this.answerCards.length)]
+        );
       }
       this.playerHands.set(username, playerAnswerCards);
     });
@@ -66,46 +67,58 @@ class Game {
 
   startRound() {
     this.receivedCardsNum = 0;
-    let questionCard = this.questionCards[Math.floor(Math.random() * this.questionCards.length)];
+    let questionCard = this.questionCards[
+      Math.floor(Math.random() * this.questionCards.length)
+    ];
     this.sockets.forEach((value, key) => {
       const socket = value;
       let currentHand = this.playerHands.get(key);
       socket.emit("handOutCards", { questionCard, currentHand });
       socket.emit("score", this.wins);
-      if(key === this.player[this.decider]){
-        socket.emit('isDecider', true);
+      if (key === this.player[this.decider]) {
+        socket.emit("isDecider", true);
       }
     });
   }
 
   receivedCards(cards, username) {
-    this.receivedCardsNum++;
-    let array = [];
+    if (cards.length > 0) {
+      this.receivedCardsNum++;
+      const array = [];
 
-    if (this.player[this.decider] !== username && this.sockets.get(username) !== undefined) {
-      for (let j = 0; j < this.playerHands.get(username).length; j++) {
-        for (let i = 0; i < cards.length; i++) {
-          if (this.playerHands.get(username)[j]._id == cards[i]._id) {
-            array.push(this.playerHands.get(username)[j]);
-            this.playerHands.get(username)[j] = this.answerCards[Math.floor(Math.random() * this.answerCards.length)];
-            break;
-          }
-        }
+      if (this.player[this.decider] !== username && this.sockets.get(username) !== undefined) {
+        // for (let j = 0; j < this.playerHands.get(username).length; j++) {
+        //   for (let i = 0; i < cards.length; i++) {
+        //     if (this.playerHands.get(username)[j]._id == cards[i]._id) {
+        //       console.log("playerhand: ", this.playerHands.get(username)[j]);
+        //       array.push(this.playerHands.get(username)[j]);
+        //       this.playerHands.get(username)[j] = this.answerCards[
+        //         Math.floor(Math.random() * this.answerCards.length)
+        //       ];
+        //       break;
+        //     }
+        //   }
+        // }
+        this.playerChosenHand.set(username, cards);
+        console.log("playerChosenhand: ", this.playerChosenHand.entries());
       }
-      this.playerChosenHand.set(username, array);
-      console.log(this.playerChosenHand.entries());
-    }
 
-    if (this.receivedCardsNum == this.player.length - 1) {
-      this.sockets.forEach((value)=>{
-        value.emit('choices', this.playerChosenHand)
-      });
+      if (this.receivedCardsNum == this.player.length - 1) {
+        console.log(this.playerChosenHand);
+        const res = {};
+        for (let [key, values] of this.playerChosenHand){
+          res[key] = values;
+        }
+        this.sockets.forEach((value) => {
+          value.emit("choices", res);
+        });
+      }
     }
   }
 
   sendChoices(socket) {
-    socket.emit('choices', this.playerChosenHand);
-    socket.to(this.room).emit('choices', this.playerChosenHand);
+    socket.emit("choices", this.playerChosenHand);
+    socket.to(this.room).emit("choices", this.playerChosenHand);
   }
 
   receivedChoice(username, winnerUsername) {
@@ -116,12 +129,15 @@ class Game {
         this.wins.set(winnerUsername, 1);
       }
     }
-    this.sockets.forEach((value)=>{
-      value.emit("winnerAnnouncement", { winnerUsername, cards: this.playerChosenHand.get(winnerUsername) });
+    console.log('this.playerChosenHand.get(winnerUsername)', this.playerChosenHand.get(winnerUsername));
+    this.sockets.forEach((value) => {
+      value.emit("winnerAnnouncement", {
+        winnerUsername,
+        cards: this.playerChosenHand.get(winnerUsername),
+      });
     });
     this.decider++;
   }
-
 }
 
 module.exports = Game;

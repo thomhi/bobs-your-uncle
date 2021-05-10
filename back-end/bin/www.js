@@ -155,7 +155,8 @@ io.on("connection", (socket) => {
     socket.on("answer", (cards) => {
       pub.publish("answer", JSON.stringify({ username, cards, room }));
     });
-    socket.on("winner", (username, winnerUsername) => {
+    socket.on("winner", ({winnerUsername}) => {
+      console.log('winnerUsername', winnerUsername);
       pub.publish("winner", JSON.stringify({ username, winnerUsername, room }));
     });
     socket.on("newRound", () => {
