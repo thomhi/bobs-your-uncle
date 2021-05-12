@@ -6,11 +6,8 @@ import { Redirect } from "react-router";
 import PlayGame from "../components/PlayGame";
 import { gameStyle } from "../styles/styles";
 import { localStorageService } from "../businessLogic/LocalStroageService";
-import { io } from "socket.io-client";
+import {socket} from "../businessLogic/socket";
 
-const socket = io.connect("http://localhost:5555", {
-  extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
-});
 
 const DEFAULT = {
   playCard: {_id: 1, content: "why is there a _______ in my __________???", numberOfFields: 2},
@@ -47,67 +44,69 @@ export default function Lobby() {
   );
   const [choices, setChoices] = useState(DEFAULT.choices);
 
-  socket.on("playersInLobby", ({ users }) => {
-    setPlayers(users);
-  });
-
-  socket.on("isDecider", (isDecider) => {
-    console.log(`socket.on(idecider) isDecider: ${isDecider}`);
-    setDecider(isDecider);
-  });
-
-  socket.on("handOutCards", ({ questionCard, currentHand }) => {
-    if (questionCard && currentHand) {
-      setHandCards(currentHand);
-      setPlayCard(questionCard);
-    } else {
-      setHandCards(DEFAULT.handcards);
-      setPlayCard(DEFAULT.playCard);
-    }
-    setPlayState("selectCard");
-    setPlaying(true);
-  });
-
-  socket.on("choices", (cards) => {
-    console.log(`socket.on(choices) as Map: ${cards}`);
-    console.log(cards);
-    console.table(cards);
-    if(cards){
-    setChoices(cards);
-    } else {
-      setChoices(DEFAULT.choices);
-    }
-    setPlayState("showSelectedCards");
-  });
-
-  socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
-    console.log(`socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`);
-    console.log(winnerUsername);
-    console.table(cards);
-    if (winnerUsername && cards) {
-      console.log(
-        `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
-      );
-      setWinnerCards(cards);
-      setRoundWinner(winnerUsername);
-      setPlayState("showWinner");
-    } else {
-      setWinnerCards(DEFAULT.winnerCards);
-      setRoundWinner(DEFAULT.winner);
-      setPlayState("showWinner");
-    }
-  });
-
-  socket.on("score", (score) => {
-    if (score.size > 0) {
-      setPointsPerPlayer(score);
-    }
-  });
-
   useEffect(() => {
+    console.log('joinRoom');
     socket.emit("joinRoom", {
-      room: room,
+      room: localStorageService.getRoom(),
     });
+
+    socket.on("playersInLobby", ({ users }) => {
+      setPlayers(users);
+    });
+  
+    socket.on("isDecider", (isDecider) => {
+      console.log(`socket.on(idecider) isDecider: ${isDecider}`);
+      setDecider(isDecider);
+    });
+  
+    socket.on("handOutCards", ({ questionCard, currentHand }) => {
+      if (questionCard && currentHand) {
+        setHandCards(currentHand);
+        setPlayCard(questionCard);
+      } else {
+        setHandCards(DEFAULT.handcards);
+        setPlayCard(DEFAULT.playCard);
+      }
+      setPlayState("selectCard");
+      setPlaying(true);
+    });
+  
+    socket.on("choices", (cards) => {
+      console.log(`socket.on(choices) as Map: ${cards}`);
+      console.log(cards);
+      console.table(cards);
+      if(cards){
+      setChoices(cards);
+      } else {
+        setChoices(DEFAULT.choices);
+      }
+      setPlayState("showSelectedCards");
+    });
+  
+    socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
+      console.log(`socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`);
+      console.log(winnerUsername);
+      console.table(cards);
+      if (winnerUsername && cards) {
+        console.log(
+          `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
+        );
+        setWinnerCards(cards);
+        setRoundWinner(winnerUsername);
+        setPlayState("showWinner");
+      } else {
+        setWinnerCards(DEFAULT.winnerCards);
+        setRoundWinner(DEFAULT.winner);
+        setPlayState("showWinner");
+      }
+    });
+  
+    socket.on("score", (score) => {
+      console.log(score);
+      if (score.size > 0) {
+        setPointsPerPlayer(score);
+      }
+    });  
 
     // return function cleanup() {
     //   console.log(
@@ -116,7 +115,15 @@ export default function Lobby() {
     //   localStorageService.exitRoom();
     //   setExitLobby(true);
     // };
-  });
+    return () => {
+      socket.off('playersInLobby');
+      socket.off('isDecider');
+      socket.off('handOutCards');
+      socket.off('choices');
+      socket.off('winnerAnnouncement');
+      socket.off('score');
+   };
+  },[]);
 
   const onPlayGame = () => {
     socket.emit("startGame");
