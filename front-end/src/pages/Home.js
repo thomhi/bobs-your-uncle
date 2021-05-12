@@ -22,7 +22,7 @@ export default function Home({ isAuthenticated }) {
   };
 
   if (redirect) {
-    return <Redirect to={"/bobs-your-uncle/lobby"}></Redirect>;
+    return <Redirect to={"/lobby"}></Redirect>;
   }
 
   return (

@@ -39,7 +39,7 @@ export default function PlayGame({
       return (
         <Waiting
           text={
-            "This is your Turn to select the winner . . .  Wait until all players choose their cards"
+            "This is your turn to select the winner. Wait until all players choose their cards"
           }
         />
       );
@@ -83,7 +83,7 @@ export default function PlayGame({
           ></Ranking>
         </Grid>
         <Grid item xs={8}>
-          <Card color="secondary" className={classes.playCard}>
+          <Card className={classes.playCard}>
             <CardContent>{playCard.content}</CardContent>
           </Card>
         </Grid>
@@ -93,7 +93,8 @@ export default function PlayGame({
               <Grid key={card._id} item xs={2}>
                 <Card className={classes.handCard} style={{ zIndex: 0 }}>
                   <CardActionArea
-                    className={classes.selectedCard}
+                    style={{ minHeight: "150px", minWidth: "100%" }}
+                    // className={classes.selectedCard}
                     disabled={decider}
                     onClick={() => {
                       onSelect(card);

@@ -39,7 +39,8 @@ export const gameStyle = makeStyles((theme) => ({
   },
   playCard: {
     padding: "5%",
-    backgroundColor: "#f16054",
+    color: '#FFFFFF',
+    backgroundColor: "#000000",
     borderRadius: "20px",
     fontWeight: "bold",
     fontSize: "150%",
@@ -50,7 +51,6 @@ export const gameStyle = makeStyles((theme) => ({
   handCard: {
     overflow: 'hidden',
     textAlign: 'start',
-    minWidth: 100,
     minHeight: '150px',
   },
   cardCombi: {

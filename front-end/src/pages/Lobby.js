@@ -20,12 +20,12 @@ const DEFAULT = {
     { content: "food", _id: 4 },
   ],
   roundWinner: "KingAbi",
-  pointsPerPlayer: [
-    { abi: 12 },
-    { thomas: 7 },
-    { JooooeeeEEEEEElllll: 5 },
-    { Tschounes: -1532 },
-  ],
+  pointsPerPlayer: {
+    abi: 12 ,
+    thomas: 7,
+    JooooeeeEEEEEElllll: 5,
+     Jonas: -1532 ,
+  },
   choices: new Map([
     [
       "abi",
@@ -58,7 +58,7 @@ export default function Lobby() {
 
   useEffect(() => {
     socket.emit("joinRoom", {
-      room: room,
+      room: localStorageService.getRoom(),
     });
 
     socket.on("playersInLobby", ({ users }) => {
@@ -115,12 +115,14 @@ export default function Lobby() {
     });
 
     socket.on("score", (score) => {
+      console.table(score);
       console.log(score);
-      if (score.size > 0) {
+      if (score) {
+        setPointsPerPlayer(0);
         setPointsPerPlayer(score);
       }
     });
-    
+
     return () => {
       socket.off("playersInLobby");
       socket.off("isDecider");
@@ -146,24 +148,27 @@ export default function Lobby() {
 
   if (playing) {
     return (
-      <PlayGame
-        playState={playState}
-        playCard={playCard}
-        handCards={handCards}
-        winnerCards={winnerCards}
-        roundWinner={roundWinner}
-        decider={decider}
-        pointsPerPlayer={pointsPerPlayer}
-        choices={choices}
-        me={player}
-        socket={socket}
-      ></PlayGame>
+      <>
+        <h1>{player}</h1>
+        <PlayGame
+          playState={playState}
+          playCard={playCard}
+          handCards={handCards}
+          winnerCards={winnerCards}
+          roundWinner={roundWinner}
+          decider={decider}
+          pointsPerPlayer={pointsPerPlayer}
+          choices={choices}
+          me={player}
+          socket={socket}
+        ></PlayGame>
+      </>
     );
   }
 
   if (exitLobby) {
     socket.emit("exitLobby", localStorageService.getUserId());
-    return <Redirect to={"/bobs-your-uncle"}></Redirect>;
+    return <Redirect to={"/"}></Redirect>;
   }
 
   return (
@@ -175,7 +180,7 @@ export default function Lobby() {
     >
       <h1 className={classes.title}>{`Room: ${room}`}</h1>
       <Players players={players} />
-      <form className="gameSettings" action="/bobs-your-uncle/playGame">
+      <form className="gameSettings" action="/playGame">
         <Grid container item alignContent="center" spacing={5} justify="center">
           {/* <Grid item className="gridItem" xs={4}>
             <TextField

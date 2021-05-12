@@ -4,15 +4,20 @@ import { gameStyle } from "../styles/styles";
 
 export function Ranking({ playerPoints, me }) {
   const classes = gameStyle();
-
-  playerPoints.sort((a, b) => {
-    return Object.values(b)[0] - Object.values(a)[0];
-  });
   let rank = 1;
+
+  const players = [];
+  for (let [player, points] of Object.entries(playerPoints)) {
+    players.push({player: player, points: points});
+  }
+
+  players.sort((a, b) => {
+    return b.points - a.points;
+  });
 
   return (
     <Paper elevation={24} className={classes.ranking}>
-      {playerPoints.map((player) => {
+      {players.map((player) => {
         return (
           <Grid key={"player" + rank} container item xs={12} spacing={2}>
             <Grid item xs={1}>

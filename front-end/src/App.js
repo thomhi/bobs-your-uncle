@@ -25,7 +25,7 @@ export default function App() {
       <Container>
         <Switch>
           <Route
-            path="/bobs-your-uncle/signIn"
+            path="/signIn"
             render={() => (
               <SignIn
                 authService={authService}
@@ -36,13 +36,13 @@ export default function App() {
           />
           <PrivateRoute
             exact
-            path="/bobs-your-uncle"
+            path="/"
             component={Home}
             userID={userID}
             isAuthenticated={isAuthenticated}
           />
           <Route
-            path="/bobs-your-uncle/signUp"
+            path="/signUp"
             render={() => (
               <SignUp
                 authService={authService}
@@ -52,7 +52,7 @@ export default function App() {
             )}
           />
           <PrivateRoute
-            path="/bobs-your-uncle/lobby"
+            path="/lobby"
             component={Lobby}
             userID={userID}
             isAuthenticated={isAuthenticated}

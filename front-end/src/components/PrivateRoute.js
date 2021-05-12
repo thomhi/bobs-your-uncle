@@ -29,7 +29,7 @@ export default function PrivateRoute({
       <Route
         exact
         {...routeProps}
-        render={() => <Redirect to={{ pathname: "/bobs-your-uncle/signIn" }} />}
+        render={() => <Redirect to={{ pathname: "/signIn" }} />}
       />
     );
   }
