@@ -6,11 +6,7 @@ import { Redirect } from "react-router";
 import PlayGame from "../components/PlayGame";
 import { gameStyle } from "../styles/styles";
 import { localStorageService } from "../businessLogic/LocalStroageService";
-import { io } from "socket.io-client";
-
-const socket = io.connect("http://localhost:5555", {
-  extraHeaders: { Authorization: `Bearer ${localStorageService.getJWT()}` },
-});
+import { socket } from "../businessLogic/socket";
 
 const DEFAULT = {
   playCard: {
@@ -119,20 +115,25 @@ export default function Lobby() {
     });
 
     socket.on("score", (score) => {
-      console.log("score", score);
+      console.log(score);
       if (score.size > 0) {
         setPointsPerPlayer(score);
       }
     });
-
-    // return function cleanup() {
-    //   console.log(
-    //     `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
-    //   );
-    //   localStorageService.exitRoom();
-    //   setExitLobby(true);
-    // };
-  });
+    
+    return () => {
+      socket.off("playersInLobby");
+      socket.off("isDecider");
+      socket.off("handOutCards");
+      socket.off("choices");
+      socket.off("winnerAnnouncement");
+      socket.off("score");
+      console.log(
+        `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
+      );
+      localStorageService.exitRoom();
+    };
+  }, []);
 
   const onPlayGame = () => {
     socket.emit("startGame");

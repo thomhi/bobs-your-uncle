@@ -10,6 +10,9 @@ class Game {
   wins = new Map();
   receivedCardsNum = 0;
   decider = 0;
+  gameStarted=false;
+  roundStarted=false;
+  alreadyReceived=false;
 
   constructor(room, answerCards, questionCards) {
     this.room = room;
@@ -24,10 +27,9 @@ class Game {
   joinRoom(socket, username, callback) {
     this.player.push(username);
     this.sockets.set(username, socket);
+    this.wins.set(username, 0);
     socket.join(this.room);
-    socket.emit("message", "joined room");
     callback(this.player);
-    console.log(this.room);
     console.log(this.player);
     //io.to(this.room).emit("playersInLobby", { users: this.player });
     //socket.emit("playersInLobby", { users: this.player });
@@ -35,8 +37,9 @@ class Game {
   }
 
   joinRoomInName(username) {
-    console.log(this.room);
     this.player.push(username);
+    this.wins.set(username, 0);
+    console.log(this.player);
   }
 
   leaveRoom(username, closeRoom) {
@@ -45,13 +48,14 @@ class Game {
     this.sockets.forEach((value) => {
       value.emit("playersInLobby", { users: this.player });
     });
-    console.log(this.player);
     if (this.player.length === 0) {
       closeRoom();
     }
   }
 
-  startGame() {
+  startGame(publishQuestionCard) {
+    if (this.gameStarted) return;
+    this.gameStarted=true;
     this.player.forEach((username) => {
       let playerAnswerCards = [];
       for (let i = 0; i < 10; i++) {
@@ -62,21 +66,74 @@ class Game {
       this.playerHands.set(username, playerAnswerCards);
     });
     this.decider = 0;
-    this.startRound();
+    this.startRoundMain(publishQuestionCard);
   }
 
-  startRound() {
+  startGameWithQuestionCard(questionCard) {
+    if (this.gameStarted) return;
+    this.gameStarted=true;
+    this.player.forEach((username) => {
+      let playerAnswerCards = [];
+      for (let i = 0; i < 10; i++) {
+        playerAnswerCards.push(
+          this.answerCards[Math.floor(Math.random() * this.answerCards.length)]
+        );
+      }
+      this.playerHands.set(username, playerAnswerCards);
+    });
+    this.decider = 0;
+    this.startRoundWithQuestionCard(questionCard);
+  }
+
+  startRoundMain(publishQuestionCard) {
+    if (this.roundStarted) return;
+    this.roundStarted = true;
     this.receivedCardsNum = 0;
+    this.alreadyReceived = false;
+    this.playerChosenHand=new Map();
     let questionCard = this.questionCards[
       Math.floor(Math.random() * this.questionCards.length)
     ];
+    const wins = {};
+    for (let [key, values] of this.wins){
+      wins[key] = values;
+    }
     this.sockets.forEach((value, key) => {
-      const socket = value;
       let currentHand = this.playerHands.get(key);
-      socket.emit("handOutCards", { questionCard, currentHand });
-      socket.emit("score", this.wins);
+      value.emit("handOutCards", { questionCard, currentHand });
+      value.emit("score", wins);
       if (key === this.player[this.decider]) {
-        socket.emit("isDecider", true);
+        console.log('send Decider true');
+        value.emit("isDecider", true);
+      } else {
+        console.log('send Decider false');
+        value.emit("isDecider", false);
+      }
+    });
+    publishQuestionCard(this.room, questionCard);
+  }
+
+  startRoundWithQuestionCard(questionCard) {
+    if (this.roundStarted) return;
+    this.roundStarted = true;
+    this.receivedCardsNum = 0;
+    this.alreadyReceived = false;
+    this.playerChosenHand=new Map();
+    const wins = {};
+    for (let [key, values] of this.wins){
+      wins[key] = values;
+    }
+    this.sockets.forEach((value, key) => {
+      let currentHand = this.playerHands.get(key);
+      value.emit("handOutCards", { questionCard, currentHand });
+      value.emit("score", wins);
+      console.log('Decider is ' + this.player[this.decider] + 'This is ' + key);
+      if (key === this.player[this.decider]) {
+        console.log('send Decider true');
+        value.emit("isDecider", true);
+      } else {
+        console.log('send Decider false');
+        value.emit("isDecider", false);
       }
     });
   }
@@ -86,7 +143,7 @@ class Game {
       this.receivedCardsNum++;
       const array = [];
 
-      if (this.player[this.decider] !== username && this.sockets.get(username) !== undefined) {
+      if (this.player[this.decider] !== username) {
         // for (let j = 0; j < this.playerHands.get(username).length; j++) {
         //   for (let i = 0; i < cards.length; i++) {
         //     if (this.playerHands.get(username)[j]._id == cards[i]._id) {
@@ -100,28 +157,25 @@ class Game {
         //   }
         // }
         this.playerChosenHand.set(username, cards);
-        console.log("playerChosenhand: ", this.playerChosenHand.entries());
       }
-
+      console.log('receivedCardsNum: ' + this.receivedCardsNum);
+      console.log('player.length: ' + this.player.length);
       if (this.receivedCardsNum == this.player.length - 1) {
-        console.log(this.playerChosenHand);
         const res = {};
         for (let [key, values] of this.playerChosenHand){
           res[key] = values;
         }
-        this.sockets.forEach((value) => {
+        this.sockets.forEach((value, key) => { // send to all but not all servers should do this only local
+          console.log('send choices to ' + key);
           value.emit("choices", res);
         });
       }
     }
   }
 
-  sendChoices(socket) {
-    socket.emit("choices", this.playerChosenHand);
-    socket.to(this.room).emit("choices", this.playerChosenHand);
-  }
-
   receivedChoice(username, winnerUsername) {
+    if (!this.alreadyReceived) {
+      this.alreadyReceived = true;
     if (username === this.player[this.decider]) {
       if (this.wins.get(winnerUsername) >= 1) {
         this.wins.set(winnerUsername, this.wins.get(winnerUsername) + 1);
@@ -129,14 +183,16 @@ class Game {
         this.wins.set(winnerUsername, 1);
       }
     }
-    console.log('this.playerChosenHand.get(winnerUsername)', this.playerChosenHand.get(winnerUsername));
-    this.sockets.forEach((value) => {
+    this.sockets.forEach((value, key) => {
+      console.log('send winnerAnnouncement to ' + key);
       value.emit("winnerAnnouncement", {
         winnerUsername,
         cards: this.playerChosenHand.get(winnerUsername),
       });
     });
-    this.decider++;
+    this.roundStarted = false;
+    this.decider = (this.decider + 1)%this.player.length;
+    }
   }
 }
 

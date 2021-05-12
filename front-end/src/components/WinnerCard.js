@@ -6,6 +6,7 @@ export function WinnerCard({ winnerCards, playCard, winner, socket, decider }) {
 
   const newRound = () => {
     socket.emit("newRound");
+    
   };
 
   return (

@@ -55,10 +55,11 @@ const io = socketio(server, {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
-  },
+  }
 });
 
 let games = new Map();
+let mapSocketToRoom = new Map();
 
 let answerCards = [];
 let questionCards = [];
@@ -97,6 +98,7 @@ sub.on("message", function (channel, message) {
   const obj = JSON.parse(message);
   switch (channel) {
     case "joinRoom":
+      mapSocketToRoom.set(obj.username, obj.room);
       if (!games.has(obj.room)) {
         game = new Game(obj.room, answerCards, questionCards);
         games.set(obj.room, game);
@@ -108,16 +110,20 @@ sub.on("message", function (channel, message) {
       }
       break;
     case "startGame":
-      games.get(obj.room).startGame();
+      console.log(obj.room);
+      games.get(obj.room) && games.get(obj.room).startGameWithQuestionCard(obj.questionCard);
       break;
     case "answer":
-      games.get(obj.room).receivedCards(obj.cards, obj.username);
+      console.log(obj.room);
+      games.get(obj.room) && games.get(obj.room).receivedCards(obj.cards, obj.username);
       break;
     case "winner":
-      games.get(obj.room).receivedChoice(obj.username, obj.winnerUsername);
+      console.log(obj.room);
+      games.get(obj.room) && games.get(obj.room).receivedChoice(obj.username, obj.winnerUsername);
       break;
     case "newRound":
-      games.get(obj.room).startRound();
+      console.log(obj.room);
+      games.get(obj.room) && games.get(obj.room).startRoundWithQuestionCard(obj.questionCard);
       break;
     case "disconnect":
       console.log("disc");
@@ -150,23 +156,34 @@ io.on("connection", (socket) => {
       }
     }
     socket.on("startGame", () => {
-      pub.publish("startGame", JSON.stringify({room}));
+      game.startGame((room, questionCard) => {
+        let room1 = mapSocketToRoom.get(username);
+        pub.publish("startGame", JSON.stringify({room: room1, questionCard}));
+      })
+      
     });
     socket.on("answer", (cards) => {
-      pub.publish("answer", JSON.stringify({ username, cards, room }));
+      let room1 = mapSocketToRoom.get(username);
+      pub.publish("answer", JSON.stringify({ username, cards, room: room1 }));
     });
     socket.on("winner", ({winnerUsername}) => {
       console.log('winnerUsername', winnerUsername);
-      pub.publish("winner", JSON.stringify({ username, winnerUsername, room }));
+      let room1 = mapSocketToRoom.get(username);
+      pub.publish("winner", JSON.stringify({ username, winnerUsername, room: room1 }));
     });
     socket.on("newRound", () => {
-      pub.publish("newRound", JSON.stringify({room}));
+      game.startRoundMain((room, questionCard) => {
+        let room1 = mapSocketToRoom.get(username);
+        pub.publish("newRound", JSON.stringify({room: room1, questionCard}));
+      })
     });
     socket.on("disconnect", () => {
-      pub.publish("disconnect", JSON.stringify({ room, username }));
+      let room1 = mapSocketToRoom.get(username);
+      pub.publish("disconnect", JSON.stringify({ room: room1, username }));
     });
     socket.on("exitLobby", () => {
-      pub.publish("disconnect", JSON.stringify({ room, username }));
+      let room1 = mapSocketToRoom.get(username);
+      pub.publish("disconnect", JSON.stringify({ room: room1, username }));
     });
   });
 });
