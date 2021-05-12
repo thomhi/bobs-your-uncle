@@ -29,7 +29,7 @@ export default function PlayGame({
     }
     selectedCards.push(card);
     if (selectedCards.length === playCard.numberOfFields) {
-      console.log('emit answers', selectedCards);
+      console.log("emit answers", selectedCards);
       socket.emit("answer", selectedCards);
     }
   };
@@ -90,13 +90,8 @@ export default function PlayGame({
         <Grid container item spacing={5}>
           {handCards.map((card) => {
             return (
-              <Grid
-                key={card}
-                className={classes.handCard}
-                item
-                xs={2}
-              >
-                <Card style={{ zIndex: 0 }}>
+              <Grid key={card._id} item xs={2}>
+                <Card className={classes.handCard} style={{ zIndex: 0 }}>
                   <CardActionArea
                     className={classes.selectedCard}
                     disabled={decider}

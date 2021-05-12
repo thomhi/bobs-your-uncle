@@ -13,18 +13,31 @@ const socket = io.connect("http://localhost:5555", {
 });
 
 const DEFAULT = {
-  playCard: {_id: 1, content: "why is there a _______ in my __________???", numberOfFields: 2},
-  handcards: [{_id: 2, content: "fridge" }],
-  winnerCards: [{content: "apple", _id: 3}, {content: "food", _id:4}],
+  playCard: {
+    _id: 1,
+    content: "why is there a _______ in my __________???",
+    numberOfFields: 2,
+  },
+  handcards: [{ _id: 2, content: "fridge" }],
+  winnerCards: [
+    { content: "apple", _id: 3 },
+    { content: "food", _id: 4 },
+  ],
   roundWinner: "KingAbi",
-  pointsPerPlayer: new Map([
-    ["abi", 12],
-    ["thomas", 7],
-    ["JooooeeeEEEEEElllll", 5],
-    ["Tschounes", -1532],
-  ]),
+  pointsPerPlayer: [
+    { abi: 12 },
+    { thomas: 7 },
+    { JooooeeeEEEEEElllll: 5 },
+    { Tschounes: -1532 },
+  ],
   choices: new Map([
-    ['abi', [{content: 'apple', _id: 5 }, {content: 'food', _id: 6}]],
+    [
+      "abi",
+      [
+        { content: "apple", _id: 5 },
+        { content: "food", _id: 6 },
+      ],
+    ],
   ]),
 };
 
@@ -47,66 +60,69 @@ export default function Lobby() {
   );
   const [choices, setChoices] = useState(DEFAULT.choices);
 
-  socket.on("playersInLobby", ({ users }) => {
-    setPlayers(users);
-  });
-
-  socket.on("isDecider", (isDecider) => {
-    console.log(`socket.on(idecider) isDecider: ${isDecider}`);
-    setDecider(isDecider);
-  });
-
-  socket.on("handOutCards", ({ questionCard, currentHand }) => {
-    if (questionCard && currentHand) {
-      setHandCards(currentHand);
-      setPlayCard(questionCard);
-    } else {
-      setHandCards(DEFAULT.handcards);
-      setPlayCard(DEFAULT.playCard);
-    }
-    setPlayState("selectCard");
-    setPlaying(true);
-  });
-
-  socket.on("choices", (cards) => {
-    console.log(`socket.on(choices) as Map: ${cards}`);
-    console.log(cards);
-    console.table(cards);
-    if(cards){
-    setChoices(cards);
-    } else {
-      setChoices(DEFAULT.choices);
-    }
-    setPlayState("showSelectedCards");
-  });
-
-  socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
-    console.log(`socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`);
-    console.log(winnerUsername);
-    console.table(cards);
-    if (winnerUsername && cards) {
-      console.log(
-        `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
-      );
-      setWinnerCards(cards);
-      setRoundWinner(winnerUsername);
-      setPlayState("showWinner");
-    } else {
-      setWinnerCards(DEFAULT.winnerCards);
-      setRoundWinner(DEFAULT.winner);
-      setPlayState("showWinner");
-    }
-  });
-
-  socket.on("score", (score) => {
-    if (score.size > 0) {
-      setPointsPerPlayer(score);
-    }
-  });
-
   useEffect(() => {
     socket.emit("joinRoom", {
       room: room,
+    });
+
+    socket.on("playersInLobby", ({ users }) => {
+      setPlayers(users);
+    });
+
+    socket.on("isDecider", (isDecider) => {
+      console.log(`socket.on(idecider) isDecider: ${isDecider}`);
+      setDecider(isDecider);
+    });
+
+    socket.on("handOutCards", ({ questionCard, currentHand }) => {
+      if (questionCard && currentHand) {
+        setHandCards(currentHand);
+        setPlayCard(questionCard);
+      } else {
+        setHandCards(DEFAULT.handcards);
+        setPlayCard(DEFAULT.playCard);
+      }
+      setPlayState("selectCard");
+      setPlaying(true);
+    });
+
+    socket.on("choices", (cards) => {
+      console.log(`socket.on(choices) as Map: ${cards}`);
+      console.log(cards);
+      console.table(cards);
+      if (cards) {
+        setChoices(cards);
+      } else {
+        setChoices(DEFAULT.choices);
+      }
+      setPlayState("showSelectedCards");
+    });
+
+    socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
+      console.log(
+        `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
+      );
+      console.log(winnerUsername);
+      console.table(cards);
+      if (winnerUsername && cards) {
+        console.log(
+          `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
+        );
+        setWinnerCards(cards);
+        setRoundWinner(winnerUsername);
+        setPlayState("showWinner");
+      } else {
+        setWinnerCards(DEFAULT.winnerCards);
+        setRoundWinner(DEFAULT.winner);
+        setPlayState("showWinner");
+      }
+    });
+
+    socket.on("score", (score) => {
+      console.log("score", score);
+      if (score.size > 0) {
+        setPointsPerPlayer(score);
+      }
     });
 
     // return function cleanup() {
@@ -153,11 +169,10 @@ export default function Lobby() {
     <Grid
       className={classes.paper}
       container
-      alignItems="center"
       justify="space-evenly"
       spacing={5}
     >
-      <h1>{`Room: ${room}`}</h1>
+      <h1 className={classes.title}>{`Room: ${room}`}</h1>
       <Players players={players} />
       <form className="gameSettings" action="/bobs-your-uncle/playGame">
         <Grid container item alignContent="center" spacing={5} justify="center">
@@ -186,7 +201,7 @@ export default function Lobby() {
               fullWidth
               id="play-game-button"
               variant="contained"
-              color="secondary"
+              color="primary"
               onClick={onPlayGame}
               disabled={players.length < 2}
             >

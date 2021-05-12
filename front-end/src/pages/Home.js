@@ -26,7 +26,7 @@ export default function Home({ isAuthenticated }) {
   }
 
   return (
-    <Grid container justify="center">
+    <Grid container style={{margin: '0 auto'}} justify="center">
       <Grid item xs={2}></Grid>
       <Grid container item xs={8} spacing={5}>
         <Grid item alignContent="center" alignItems="center" xs={7}>

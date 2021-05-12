@@ -16,6 +16,22 @@ export const gameStyle = makeStyles((theme) => ({
   },
   rank: {
     overflow: "hidden",
+  },  
+  title: {
+    marginBottom: '5%',
+    backgroundColor: "#123456",
+    fontFamily: 'Gill Sans Extrabold, monospace',
+    color: '#FFFFFF',
+    padding: "2%",
+    borderRadius: "20px",
+  },
+  avatar: {
+    margin: "0 auto",
+    alignItems: 'center',
+  },
+  player: {
+    marginBottom: '5%',
+    textAlign: 'center',
   },
   selectedCard: {
     backgroundColor: "#DDDDDD",
@@ -29,11 +45,13 @@ export const gameStyle = makeStyles((theme) => ({
     fontSize: "150%",
     fontFamily: "inherit",
     zIndex: 1,
+    verticalAlign: 'center',
   },
   handCard: {
-    overflow: 'auto',
+    overflow: 'hidden',
     textAlign: 'start',
-    vh: "10%"
+    minWidth: 100,
+    minHeight: '150px',
   },
   cardCombi: {
     border: "3px solid black",
