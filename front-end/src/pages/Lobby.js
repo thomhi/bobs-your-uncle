@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Grid /*TextField*/ } from "@material-ui/core";
+import { Button, Container, Grid /*TextField*/ } from "@material-ui/core";
 import { Players } from "../components/Players";
 // import { gameSettings } from "../businessLogic/GameSettingsService";
 import { Redirect } from "react-router";
@@ -21,10 +21,10 @@ const DEFAULT = {
   ],
   roundWinner: "KingAbi",
   pointsPerPlayer: {
-    abi: 12 ,
+    abi: 12,
     thomas: 7,
     JooooeeeEEEEEElllll: 5,
-     Jonas: -1532 ,
+    Jonas: -1532,
   },
   choices: new Map([
     [
@@ -148,8 +148,8 @@ export default function Lobby() {
 
   if (playing) {
     return (
-      <>
-        <h1>{player}</h1>
+      <Container className={classes.container}>
+        <h1 style={{textAlign: 'right'}}>{player}</h1>
         <PlayGame
           playState={playState}
           playCard={playCard}
@@ -161,8 +161,9 @@ export default function Lobby() {
           choices={choices}
           me={player}
           socket={socket}
+          setPlayState={setPlayState}
         ></PlayGame>
-      </>
+      </Container>
     );
   }
 
