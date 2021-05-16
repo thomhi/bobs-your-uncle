@@ -32,16 +32,11 @@ class Game {
     this.wins.set(username, 0);
     socket.join(this.room);
     callback(this.player);
-    console.log(this.player);
-    //io.to(this.room).emit("playersInLobby", { users: this.player });
-    //socket.emit("playersInLobby", { users: this.player });
-    //socket.to(this.room).emit("playersInLobby", { users: this.player });
   }
 
   joinRoomInName(username) {
     this.player.push(username);
     this.wins.set(username, 0);
-    console.log(this.player);
   }
 
   leaveRoom(username, closeRoom) {
@@ -60,7 +55,7 @@ class Game {
     this.gameStarted=true;
     this.player.forEach((username) => {
       let playerAnswerCards = [];
-      for (let i = 0; i < NUMBER_OF_PLAYER_CARDS; i++) {
+      for (let i = 0; i < this.NUMBER_OF_PLAYER_CARDS; i++) {
         playerAnswerCards.push(
           this.answerCards[Math.floor(Math.random() * this.answerCards.length)]
         );
@@ -76,7 +71,7 @@ class Game {
     this.gameStarted=true;
     this.player.forEach((username) => {
       let playerAnswerCards = [];
-      for (let i = 0; i < NUMBER_OF_PLAYER_CARDS; i++) {
+      for (let i = 0; i < this.NUMBER_OF_PLAYER_CARDS; i++) {
         playerAnswerCards.push(
           this.answerCards[Math.floor(Math.random() * this.answerCards.length)]
         );
@@ -105,10 +100,8 @@ class Game {
       value.emit("handOutCards", { questionCard, currentHand });
       value.emit("score", wins);
       if (key === this.player[this.decider]) {
-        console.log('send Decider true');
         value.emit("isDecider", true);
       } else {
-        console.log('send Decider false');
         value.emit("isDecider", false);
       }
     });
@@ -129,12 +122,9 @@ class Game {
       let currentHand = this.playerHands.get(key);
       value.emit("handOutCards", { questionCard, currentHand });
       value.emit("score", wins);
-      console.log('Decider is ' + this.player[this.decider] + 'This is ' + key);
       if (key === this.player[this.decider]) {
-        console.log('send Decider true');
         value.emit("isDecider", true);
       } else {
-        console.log('send Decider false');
         value.emit("isDecider", false);
       }
     });
@@ -161,15 +151,12 @@ class Game {
         }
         this.playerChosenHand.set(username, cards);
       }
-      console.log('receivedCardsNum: ' + this.receivedCardsNum);
-      console.log('player.length: ' + this.player.length);
       if (this.receivedCardsNum == this.player.length - 1) {
         const res = {};
         for (let [key, values] of this.playerChosenHand){
           res[key] = values;
         }
         this.sockets.forEach((value, key) => {
-          console.log('send choices to ' + key);
           value.emit("choices", res);
         });
       }
@@ -187,7 +174,6 @@ class Game {
       }
     }
     this.sockets.forEach((value, key) => {
-      console.log('send winnerAnnouncement to ' + key);
       value.emit("winnerAnnouncement", {
         winnerUsername,
         cards: this.playerChosenHand.get(winnerUsername),

@@ -14,14 +14,6 @@ require("dotenv").config();
 
 const app = express();
 
-/*mongoose.connect(
-  "mongodb://root:password@localhost:7777/bobsDB?authSource=admin",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-);*/
-
 mongoose.connect(
   "mongodb://root:password@bobsdb:27017/bobsDB?authSource=admin",
   {
@@ -48,7 +40,6 @@ app.use(express.json());
 app.use("/user", authRoute);
 
 const server = app.listen(8080);
-//const server = app.listen(9999);
 
 const io = socketio(server, {
   cors: {
@@ -110,23 +101,18 @@ sub.on("message", function (channel, message) {
       }
       break;
     case "startGame":
-      console.log(obj.room);
       games.get(obj.room) && games.get(obj.room).startGameWithQuestionCard(obj.questionCard);
       break;
     case "answer":
-      console.log(obj.room);
       games.get(obj.room) && games.get(obj.room).receivedCards(obj.cards, obj.username);
       break;
     case "winner":
-      console.log(obj.room);
       games.get(obj.room) && games.get(obj.room).receivedChoice(obj.username, obj.winnerUsername);
       break;
     case "newRound":
-      console.log(obj.room);
       games.get(obj.room) && games.get(obj.room).startRoundWithQuestionCard(obj.questionCard);
       break;
     case "disconnect":
-      console.log("disc");
       if (games.get(obj.room) !== undefined) {
         games.get(obj.room).leaveRoom(obj.username, () => {
           games.delete(obj.room);
@@ -138,7 +124,6 @@ sub.on("message", function (channel, message) {
 getCards();
 
 io.on("connection", (socket) => {
-  console.log(socket.decoded_token.username);
   let username = socket.decoded_token.username;
   socket.on("joinRoom", ({ room }) => {
     pub.publish("joinRoom", JSON.stringify({ username, room }));
@@ -167,7 +152,6 @@ io.on("connection", (socket) => {
       pub.publish("answer", JSON.stringify({ username, cards, room: room1 }));
     });
     socket.on("winner", ({winnerUsername}) => {
-      console.log('winnerUsername', winnerUsername);
       let room1 = mapSocketToRoom.get(username);
       pub.publish("winner", JSON.stringify({ username, winnerUsername, room: room1 }));
     });
