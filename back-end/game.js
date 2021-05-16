@@ -14,6 +14,8 @@ class Game {
   roundStarted=false;
   alreadyReceived=false;
 
+  NUMBER_OF_PLAYER_CARDS = 12;
+
   constructor(room, answerCards, questionCards) {
     this.room = room;
     this.answerCards = answerCards;
@@ -58,7 +60,7 @@ class Game {
     this.gameStarted=true;
     this.player.forEach((username) => {
       let playerAnswerCards = [];
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < NUMBER_OF_PLAYER_CARDS; i++) {
         playerAnswerCards.push(
           this.answerCards[Math.floor(Math.random() * this.answerCards.length)]
         );
@@ -74,7 +76,7 @@ class Game {
     this.gameStarted=true;
     this.player.forEach((username) => {
       let playerAnswerCards = [];
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < NUMBER_OF_PLAYER_CARDS; i++) {
         playerAnswerCards.push(
           this.answerCards[Math.floor(Math.random() * this.answerCards.length)]
         );
@@ -141,21 +143,22 @@ class Game {
   receivedCards(cards, username) {
     if (cards.length > 0) {
       this.receivedCardsNum++;
-      const array = [];
 
       if (this.player[this.decider] !== username) {
-        // for (let j = 0; j < this.playerHands.get(username).length; j++) {
-        //   for (let i = 0; i < cards.length; i++) {
-        //     if (this.playerHands.get(username)[j]._id == cards[i]._id) {
-        //       console.log("playerhand: ", this.playerHands.get(username)[j]);
-        //       array.push(this.playerHands.get(username)[j]);
-        //       this.playerHands.get(username)[j] = this.answerCards[
-        //         Math.floor(Math.random() * this.answerCards.length)
-        //       ];
-        //       break;
-        //     }
-        //   }
-        // }
+        if (this.sockets.get(username)) {
+          for (let j = 0; j < this.playerHands.get(username).length; j++) {
+            for (let i = 0; i < cards.length; i++) {
+              if (this.playerHands.get(username)[j]._id == cards[i]._id) {
+                const newPlayerHands = this.playerHands.get(username);
+                newPlayerHands[j] = this.answerCards[
+                  Math.floor(Math.random() * this.answerCards.length)
+                ];
+                this.playerHands.set(username, newPlayerHands);
+                break;
+              }
+            }
+          }
+        }
         this.playerChosenHand.set(username, cards);
       }
       console.log('receivedCardsNum: ' + this.receivedCardsNum);
@@ -165,7 +168,7 @@ class Game {
         for (let [key, values] of this.playerChosenHand){
           res[key] = values;
         }
-        this.sockets.forEach((value, key) => { // send to all but not all servers should do this only local
+        this.sockets.forEach((value, key) => {
           console.log('send choices to ' + key);
           value.emit("choices", res);
         });
