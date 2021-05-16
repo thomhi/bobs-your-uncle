@@ -10,7 +10,6 @@ export class AuthService {
   }
 
   async signUp(name, password) {
-    console.log("authservice");
     return this.dataResource
       .postJson(`/user/register`, { name, password })
       .then((response) => response.json());

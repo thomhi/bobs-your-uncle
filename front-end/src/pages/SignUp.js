@@ -55,8 +55,6 @@ export default function SignUp({
     authService
       .signUp(username, password)
       .then(({ userID }) => {
-        console.log(`${userID} signed Up`);
-        localStorageService.setUserId(userID);
         setIsAuthenticated(true);
         setIsLoading(false);
         setRedirect(true);
@@ -110,7 +108,7 @@ export default function SignUp({
   };
 
   if (redirect) {
-    return <Redirect to={"/"} />;
+    return <Redirect to={"/signIn"} />;
   }
 
   return (

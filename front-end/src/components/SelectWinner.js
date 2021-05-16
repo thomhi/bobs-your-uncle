@@ -1,8 +1,10 @@
 import { Card, CardContent, Grid, CardActionArea } from "@material-ui/core";
 import { gameStyle } from "../styles/styles";
+import HandCard from "./HandCard";
 import { Waiting } from "./Waiting";
 
-export function SelectWinner({ choices, playCard, socket, decider, me }) {
+export function SelectWinner({ choices, playCard, socket, decider}) {
+
   const classes = gameStyle();
 
   const Task = () => {
@@ -14,34 +16,37 @@ export function SelectWinner({ choices, playCard, socket, decider, me }) {
   };
 
   const onSelect = (player) => {
-    console.log(`winner selected ${player}`);
     socket.emit("winner", { winnerUsername: player });
   };
 
   return (
     <Grid container justify="space-evenly" spacing={5}>
       <Task />
-      <Grid container item spacing={5}>
+      <Grid container justify="space-evenly" item spacing={5}>
         {Object.entries(choices).map((entry) => {
-          console.log("Player: ", entry[0]);
-          console.log("cards: ", entry[1]);
           return (
-            <Grid key={entry[0]} item xs={4}>
+            <Grid container justify="space-evenly" key={entry[0]} item xs={3}>
               <Card className={classes.cardCombi}>
-                {entry[1].map((card) => {
-                  return (
-                    <Card key={card._id}>
-                      <CardActionArea
-                        onClick={() => {
-                          onSelect(entry[0]);
-                        }}
-                        disabled={!decider}
-                      >
-                        <CardContent>{card.content}</CardContent>
-                      </CardActionArea>
-                    </Card>
-                  );
-                })}
+                <CardActionArea
+                  onClick={() => {
+                    onSelect(entry[0]);
+                  }}
+                  disabled={!decider}
+                >
+                <Grid container item justify="space-evenly" alignContent='space-between'>
+                  {entry[1].map((card) => {
+                    return (
+                        <Grid item xs={10} style={{margin: '10%'}}>
+                          <HandCard
+                            onSelect={onSelect}
+                            card={card}
+                            decider={decider}
+                          ></HandCard>
+                        </Grid>
+                    );
+                  })}
+                  </Grid>
+                </CardActionArea>
               </Card>
             </Grid>
           );

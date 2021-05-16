@@ -5,8 +5,6 @@ import { Waiting } from "./Waiting";
 import { Ranking } from "./Ranking";
 import { WinnerCard } from "../components/WinnerCard";
 import { RoundState } from "./RoundState";
-import { localStorageService } from "../businessLogic/LocalStroageService";
-import { Redirect } from "react-router";
 import HandCard from "./HandCard";
 import { useState } from "react";
 
@@ -31,8 +29,6 @@ export default function PlayGame({
   );
 
   const onSelect = (card, active) => {
-    console.log("clicked:", card);
-    console.log("active:", active);
     let tempSelectedCards = selectedCards;
     if (active) {
       tempSelectedCards.push(card);
@@ -43,7 +39,6 @@ export default function PlayGame({
         }
       }
     }
-    console.log("selecteCards ", tempSelectedCards);
     if (tempSelectedCards.length === playCard.numberOfFields) {
       setEmitable(true);
       setNote("handover selected cards ➡️");
@@ -53,18 +48,19 @@ export default function PlayGame({
         playCard.numberOfFields > tempSelectedCards.length
           ? `you must select ${
               playCard.numberOfFields - tempSelectedCards.length
-            }`
+            } card`
           : `you must deselect ${
               tempSelectedCards.length - playCard.numberOfFields
-            }`
+            } card`
       );
     }
     setSelectedCards(tempSelectedCards);
   };
 
   const onEmitCards = () => {
-    console.log("emit answers", selectedCards);
     socket.emit("answer", selectedCards);
+    setSelectedCards([]);
+    setEmitable(false);
     setPlayState("showSelectedCards");
   };
 
@@ -114,9 +110,9 @@ export default function PlayGame({
   if (playState === "selectCard") {
     return (
       <Container>
-        <Grid container spacing={10} justify="center">
+        <Grid container spacing={5} justify="center">
           <IsDecider className={classes.note} decider={decider} />
-          <Grid item xs={3}>
+          <Grid item xs={4}>
             <Ranking
               id="ranking"
               me={me}
@@ -128,38 +124,34 @@ export default function PlayGame({
               <CardContent>{playCard.content}</CardContent>
             </Card>
           </Grid>
-          <Grid container item spacing={5}>
+          <Grid container item spacing={3}>
             {handCards.map((card) => {
               return (
-                <HandCard
-                  decider={decider}
-                  card={card}
-                  onSelect={onSelect}
-                ></HandCard>
+                <Grid key={card._id} item xs={2}>
+                  <HandCard
+                    decider={decider}
+                    card={card}
+                    onSelect={onSelect}
+                  ></HandCard>
+                </Grid>
               );
             })}
-          </Grid>
-          <Grid item xs={4}>
-            <Button
-              className={`${classes.exitLobby}`}
-              onClick={() => {
-                socket.emit("exitLobby", localStorageService.getUserId());
-                return <Redirect to={"/"}></Redirect>;
-              }}
-            >
-              Exit Lobby
-            </Button>
-          </Grid>
-          <Grid item xs={12}>
-            <Button
-              className={emitable ? classes.emitButton : null}
-              disabled={!emitable}
-              onClick={() => {
-                onEmitCards();
-              }}
-            >
-              {note}
-            </Button>
+            <Grid item xs={4}>
+              {decider ? null : (
+                <Button
+                  className={emitable ? classes.emitButton : null}
+                  disabled={!emitable}
+                  style={{
+                    minWidth: "100%",
+                  }}
+                  onClick={() => {
+                    onEmitCards();
+                  }}
+                >
+                  {note}
+                </Button>
+              )}
+            </Grid>
           </Grid>
         </Grid>
         <RoundState decider={decider} roundState={playState}></RoundState>

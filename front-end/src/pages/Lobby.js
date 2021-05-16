@@ -66,7 +66,6 @@ export default function Lobby() {
     });
 
     socket.on("isDecider", (isDecider) => {
-      console.log(`socket.on(idecider) isDecider: ${isDecider}`);
       setDecider(isDecider);
     });
 
@@ -80,12 +79,10 @@ export default function Lobby() {
       }
       setPlayState("selectCard");
       setPlaying(true);
+      setChoices([]);
     });
 
     socket.on("choices", (cards) => {
-      console.log(`socket.on(choices) as Map: ${cards}`);
-      console.log(cards);
-      console.table(cards);
       if (cards) {
         setChoices(cards);
       } else {
@@ -95,15 +92,7 @@ export default function Lobby() {
     });
 
     socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
-      console.log(
-        `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
-      );
-      console.log(winnerUsername);
-      console.table(cards);
       if (winnerUsername && cards) {
-        console.log(
-          `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
-        );
         setWinnerCards(cards);
         setRoundWinner(winnerUsername);
         setPlayState("showWinner");
@@ -115,8 +104,6 @@ export default function Lobby() {
     });
 
     socket.on("score", (score) => {
-      console.table(score);
-      console.log(score);
       if (score) {
         setPointsPerPlayer(0);
         setPointsPerPlayer(score);
@@ -130,26 +117,24 @@ export default function Lobby() {
       socket.off("choices");
       socket.off("winnerAnnouncement");
       socket.off("score");
-      console.log(
-        `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
-      );
       localStorageService.exitRoom();
     };
   }, []);
 
   const onPlayGame = () => {
     socket.emit("startGame");
-    console.log("game started");
     setPlaying(true);
   };
-  const onExitLobby = () => {
-    setExitLobby(true);
-  };
+  
+  if (exitLobby) {
+    socket.emit("exitLobby", localStorageService.getUserId());
+    return <Redirect to={"/"}></Redirect>;
+  }
 
   if (playing) {
     return (
       <Container className={classes.container}>
-        <h1 style={{textAlign: 'right'}}>{player}</h1>
+        <h1 className={classes.menu}>{player}</h1>
         <PlayGame
           playState={playState}
           playCard={playCard}
@@ -163,13 +148,18 @@ export default function Lobby() {
           socket={socket}
           setPlayState={setPlayState}
         ></PlayGame>
+        <Grid item xs={4}>
+          <Button
+            className={`${classes.exitLobby}`}
+            onClick={() => {
+              setExitLobby(true);
+            }}
+          >
+            Exit Lobby
+          </Button>
+        </Grid>
       </Container>
     );
-  }
-
-  if (exitLobby) {
-    socket.emit("exitLobby", localStorageService.getUserId());
-    return <Redirect to={"/"}></Redirect>;
   }
 
   return (
@@ -183,26 +173,6 @@ export default function Lobby() {
       <Players players={players} />
       <form className="gameSettings" action="/playGame">
         <Grid container item alignContent="center" spacing={5} justify="center">
-          {/* <Grid item className="gridItem" xs={4}>
-            <TextField
-              fullWidth
-              id="rounds"
-              label="Number of Rounds"
-              name="rounds"
-              variant="outlined"
-              defaultValue={gameSettings.rounds}
-            />
-          </Grid>
-          <Grid item className="gridItem" xs={4}>
-            <TextField
-              fullWidth
-              id="timeTP"
-              label="Time to Play"
-              name="timeTP"
-              variant="outlined"
-              defaultValue={gameSettings.playTimePerRound}
-            />
-          </Grid> */}
           <Grid item className="gridItem" xs={11}>
             <Button
               fullWidth
@@ -221,7 +191,7 @@ export default function Lobby() {
               id="exit-lobby-button"
               variant="contained"
               color="secondary"
-              onClick={onExitLobby}
+              onClick={() => {setExitLobby(true)}}
             >
               Exit Lobby and Group
             </Button>

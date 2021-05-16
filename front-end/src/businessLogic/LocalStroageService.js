@@ -44,23 +44,6 @@ export class LocalstorageService {
   exitRoom() {
     this.localStorage.removeItem("room");
   }
-
-  setTabIndex(id) {
-    this.localStorage.setItem("tabIndex", id);
-  }
-
-  getTabIndex() {
-    const result = this.localStorage.getItem("tabIndex");
-    if (result) {
-      return result;
-    } else {
-      return "noTabIndex";
-    }
-  }
-
-  userExists() {
-    return !!this.localStorage.getItem("userID");
-  }
 }
 
 export const localStorageService = new LocalstorageService(localStorage);

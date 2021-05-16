@@ -1,4 +1,4 @@
-import { Grid, Paper } from "@material-ui/core";
+import {  Paper } from "@material-ui/core";
 import React from "react";
 import { gameStyle } from "../styles/styles";
 
@@ -8,7 +8,7 @@ export function Ranking({ playerPoints, me }) {
 
   const players = [];
   for (let [player, points] of Object.entries(playerPoints)) {
-    players.push({player: player, points: points});
+    players.push({ player: player, points: points });
   }
 
   players.sort((a, b) => {
@@ -19,17 +19,13 @@ export function Ranking({ playerPoints, me }) {
     <Paper elevation={24} className={classes.ranking}>
       {players.map((player) => {
         return (
-          <Grid key={"player" + rank} container item xs={12} spacing={2}>
-            <Grid item xs={1}>
-              {rank++}.
-            </Grid>
-            <Grid className={classes.rank} item xs={7}>
-              {player.player}
-            </Grid>
-            <Grid item xs={4}>
-              {player.points} points
-            </Grid>
-          </Grid>
+          <p key={"player" + rank} className={classes.rank}>
+            {me === player.player ? (
+              <b>{`${rank++}. ${player.player} ${player.points} points`}</b>
+            ) : (
+              `${rank++}. ${player.player} ${player.points} points`
+            )}
+          </p>
         );
       })}
     </Paper>

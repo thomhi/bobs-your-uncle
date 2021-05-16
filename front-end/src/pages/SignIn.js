@@ -46,7 +46,6 @@ export default function SignIn({
     authService
       .signIn(username, password)
       .then(({jwt}) => {
-        console.log(`${username} signed In\nwith JWT: ${jwt}`);
         setIsAuthenticated(true);
         localStorageService.setUserId(username);
         localStorageService.setJWT(jwt);
@@ -161,10 +160,6 @@ export default function SignIn({
                 </InputAdornment>
               ),
             }}
-          />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
           />
           <Button
             id="signin-button"

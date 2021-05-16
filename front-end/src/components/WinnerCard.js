@@ -1,5 +1,6 @@
 import { Button, Card, CardContent, Grid } from "@material-ui/core";
 import { gameStyle } from "../styles/styles";
+import HandCard from "./HandCard";
 
 export function WinnerCard({ winnerCards, playCard, winner, socket, decider }) {
   const classes = gameStyle();
@@ -11,13 +12,13 @@ export function WinnerCard({ winnerCards, playCard, winner, socket, decider }) {
   return (
     <Grid container justify="space-evenly" spacing={5}>
       <h2>Winner is: {winner}</h2>
-      <Grid container item spacing={5}>
+      <Grid container item justify="space-evenly" spacing={5}>
         {winnerCards.map((card) => {
           return (
-            <Grid key={card._id} item xs={4}>
-              <Card className={classes.cardCombi}>
+            <Grid key={card._id} item xs={3}>
+              <HandCard className={classes.cardCombi} card={card} decider={true} onSelect={()=>{}}>
                 <CardContent>{card.content}</CardContent>
-              </Card>
+              </HandCard>
             </Grid>
           );
         })}

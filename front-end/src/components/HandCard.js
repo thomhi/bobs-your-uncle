@@ -1,4 +1,4 @@
-import { Card, CardActionArea, CardContent, Grid } from "@material-ui/core";
+import { Card, CardActionArea, CardContent } from "@material-ui/core";
 import { useState } from "react";
 import { gameStyle } from "../styles/styles";
 
@@ -7,7 +7,6 @@ export default function HandCard({ onSelect, card, decider }) {
   const [active, setActive] = useState(false);
 
   return (
-    <Grid key={card._id} item xs={2}>
       <Card
         className={`${classes.handCard} ${
           active ? classes.selectedCard : null
@@ -24,6 +23,5 @@ export default function HandCard({ onSelect, card, decider }) {
           <CardContent>{card.content}</CardContent>
         </CardActionArea>
       </Card>
-    </Grid>
   );
 }
