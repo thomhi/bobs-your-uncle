@@ -1,9 +1,14 @@
-import { Grid, Card, CardContent, CardActionArea } from "@material-ui/core";
+import { Grid, Card, CardContent, Container, Button } from "@material-ui/core";
 import { gameStyle } from "../styles/styles";
 import { SelectWinner } from "./SelectWinner";
 import { Waiting } from "./Waiting";
 import { Ranking } from "./Ranking";
 import { WinnerCard } from "../components/WinnerCard";
+import { RoundState } from "./RoundState";
+import { localStorageService } from "../businessLogic/LocalStroageService";
+import { Redirect } from "react-router";
+import HandCard from "./HandCard";
+import { useState } from "react";
 
 export default function PlayGame({
   me,
@@ -16,22 +21,51 @@ export default function PlayGame({
   decider,
   pointsPerPlayer,
   choices,
+  setPlayState,
 }) {
   const classes = gameStyle();
-  const selectedCards = [];
+  const [emitable, setEmitable] = useState(false);
+  const [selectedCards, setSelectedCards] = useState([]);
+  const [note, setNote] = useState(
+    `you must select ${playCard.numberOfFields}`
+  );
 
-  const onSelect = (card) => {
-    console.log(`clicked:\n${card}`);
-    for (let selectedCard of selectedCards) {
-      if (selectedCard._id === card._id) {
-        return;
+  const onSelect = (card, active) => {
+    console.log("clicked:", card);
+    console.log("active:", active);
+    let tempSelectedCards = selectedCards;
+    if (active) {
+      tempSelectedCards.push(card);
+    } else {
+      for (let i = 0; i < tempSelectedCards.length; i++) {
+        if (tempSelectedCards[i]._id === card._id) {
+          tempSelectedCards.splice(i, 1);
+        }
       }
     }
-    selectedCards.push(card);
-    if (selectedCards.length === playCard.numberOfFields) {
-      console.log('emit answers', selectedCards);
-      socket.emit("answer", selectedCards);
+    console.log("selecteCards ", tempSelectedCards);
+    if (tempSelectedCards.length === playCard.numberOfFields) {
+      setEmitable(true);
+      setNote("handover selected cards ➡️");
+    } else {
+      setEmitable(false);
+      setNote(
+        playCard.numberOfFields > tempSelectedCards.length
+          ? `you must select ${
+              playCard.numberOfFields - tempSelectedCards.length
+            }`
+          : `you must deselect ${
+              tempSelectedCards.length - playCard.numberOfFields
+            }`
+      );
     }
+    setSelectedCards(tempSelectedCards);
+  };
+
+  const onEmitCards = () => {
+    console.log("emit answers", selectedCards);
+    socket.emit("answer", selectedCards);
+    setPlayState("showSelectedCards");
   };
 
   function IsDecider({ decider }) {
@@ -39,7 +73,7 @@ export default function PlayGame({
       return (
         <Waiting
           text={
-            "This is your Turn to select the winner . . .  Wait until all players choose their cards"
+            "This is your turn to select the winner. Wait until all players choose their cards"
           }
         />
       );
@@ -48,70 +82,88 @@ export default function PlayGame({
     }
   }
 
-  if (playState === "showSelectedCards") {
+  if (playState === "showWinner") {
     return (
-      <SelectWinner
-        choices={choices}
-        playCard={playCard}
-        socket={socket}
-        decider={decider}
-      ></SelectWinner>
+      <Container>
+        <WinnerCard
+          playCard={playCard}
+          winnerCards={winnerCards}
+          winner={roundWinner}
+          socket={socket}
+          decider={decider}
+        ></WinnerCard>
+        <RoundState decider={decider} roundState={playState}></RoundState>
+      </Container>
     );
   }
 
-  if (playState === "showWinner") {
+  if (playState === "showSelectedCards") {
     return (
-      <WinnerCard
-        playCard={playCard}
-        winnerCards={winnerCards}
-        winner={roundWinner}
-        socket={socket}
-        decider={decider}
-      ></WinnerCard>
+      <Container>
+        <SelectWinner
+          choices={choices}
+          playCard={playCard}
+          socket={socket}
+          decider={decider}
+        ></SelectWinner>
+        <RoundState decider={decider} roundState={playState}></RoundState>
+      </Container>
     );
   }
 
   if (playState === "selectCard") {
     return (
-      <Grid container spacing={10} justify="center">
-        <IsDecider className={classes.note} decider={decider} />
-        <Grid item xs={3}>
-          <Ranking
-            id="ranking"
-            me={me}
-            playerPoints={pointsPerPlayer}
-          ></Ranking>
+      <Container>
+        <Grid container spacing={10} justify="center">
+          <IsDecider className={classes.note} decider={decider} />
+          <Grid item xs={3}>
+            <Ranking
+              id="ranking"
+              me={me}
+              playerPoints={pointsPerPlayer}
+            ></Ranking>
+          </Grid>
+          <Grid item xs={8}>
+            <Card className={classes.playCard}>
+              <CardContent>{playCard.content}</CardContent>
+            </Card>
+          </Grid>
+          <Grid container item spacing={5}>
+            {handCards.map((card) => {
+              return (
+                <HandCard
+                  decider={decider}
+                  card={card}
+                  onSelect={onSelect}
+                ></HandCard>
+              );
+            })}
+          </Grid>
+          <Grid item xs={4}>
+            <Button
+              className={`${classes.exitLobby}`}
+              onClick={() => {
+                socket.emit("exitLobby", localStorageService.getUserId());
+                return <Redirect to={"/"}></Redirect>;
+              }}
+            >
+              Exit Lobby
+            </Button>
+          </Grid>
+          <Grid item xs={12}>
+            <Button
+              className={emitable ? classes.emitButton : null}
+              disabled={!emitable}
+              onClick={() => {
+                onEmitCards();
+              }}
+            >
+              {note}
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={8}>
-          <Card color="secondary" className={classes.playCard}>
-            <CardContent>{playCard.content}</CardContent>
-          </Card>
-        </Grid>
-        <Grid container item spacing={5}>
-          {handCards.map((card) => {
-            return (
-              <Grid
-                key={card}
-                className={classes.handCard}
-                item
-                xs={2}
-              >
-                <Card style={{ zIndex: 0 }}>
-                  <CardActionArea
-                    className={classes.selectedCard}
-                    disabled={decider}
-                    onClick={() => {
-                      onSelect(card);
-                    }}
-                  >
-                    <CardContent>{card.content}</CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Grid>
+        <RoundState decider={decider} roundState={playState}></RoundState>
+      </Container>
     );
   }
 }

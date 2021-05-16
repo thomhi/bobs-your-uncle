@@ -17,35 +17,75 @@ export const gameStyle = makeStyles((theme) => ({
   rank: {
     overflow: "hidden",
   },
+  title: {
+    marginBottom: "5%",
+    backgroundColor: "#123456",
+    fontFamily: "Gill Sans Extrabold, monospace",
+    color: "#FFFFFF",
+    padding: "2%",
+    borderRadius: "20px",
+  },
+  avatar: {
+    margin: "0 auto",
+    alignItems: "center",
+  },
+  player: {
+    marginBottom: "5%",
+    textAlign: "center",
+  },
   selectedCard: {
-    backgroundColor: "#DDDDDD",
-    zIndex: 1,
+    border: "2px solid #a0a500",
+    backgroundColor: "#FEFB62",
+    zIndex: 3,
   },
   playCard: {
     padding: "5%",
-    backgroundColor: "#f16054",
+    color: "#FFFFFF",
+    backgroundColor: "#000000",
+    border: "2px solid #edeee2",
     borderRadius: "20px",
-    fontWeight: "bold",
     fontSize: "150%",
     fontFamily: "inherit",
     zIndex: 1,
+    verticalAlign: "center",
   },
   handCard: {
-    overflow: 'auto',
-    textAlign: 'start',
-    vh: "10%"
+    overflow: "hidden",
+    textAlign: "start",
+    minHeight: "150px",
+  },
+  emitButton: {
+    border: "2px solid blue",
+    color: "white",
+    backgroundColor: "blue",
+    "&:hover": {
+      color: "blue",
+    },
   },
   cardCombi: {
     border: "3px solid black",
     borderRadius: "20px",
   },
-  note: {},
+  roundState: {
+    textAlign: "center",
+    marginTop: "10vh",
+  },
   form: {
     width: "100%",
     marginTop: theme.spacing(1),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
+  },
+  exitLobby: {
+    border: `2px dotted ${theme.palette.secondary.main}`,
+    borderRadius: "10px",
+    color: theme.palette.secondary.main,
+    maxWidth: "64px",
+    maxHeight: "64px",
+    position: "absolute",
+    top: "10px",
+    left: "10px",
   },
 }));
 
@@ -140,9 +180,10 @@ export const authenticationFormUseStyles = makeStyles((theme) => ({
       margin: "0 auto",
       width: "clamp(200px, 100%, 400px)",
     },
-    "& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus, & input:-webkit-autofill:active": {
-      transition: "background-color 5000s ease-in-out 0s",
-    },
+    "& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus, & input:-webkit-autofill:active":
+      {
+        transition: "background-color 5000s ease-in-out 0s",
+      },
     "& .MuiFilledInput-input:-webkit-autofill": {
       "-webkit-box-shadow": "inherit",
     },

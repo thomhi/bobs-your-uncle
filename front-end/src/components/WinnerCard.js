@@ -6,7 +6,6 @@ export function WinnerCard({ winnerCards, playCard, winner, socket, decider }) {
 
   const newRound = () => {
     socket.emit("newRound");
-    
   };
 
   return (
@@ -26,7 +25,15 @@ export function WinnerCard({ winnerCards, playCard, winner, socket, decider }) {
       <Grid item xs={9}>
         <Card className={classes.playCard}>{playCard.content}</Card>
       </Grid>
-      <Button disabled={!decider} onClick={() => newRound()}>new Round</Button>
+      <Grid container item justify="space-evenly" spacing={5}>
+        {decider ? (
+          <Grid item xs={4}>
+            <Button className={classes.emitButton} onClick={() => newRound()}>
+              new Round
+            </Button>
+          </Grid>
+        ) : null}
+      </Grid>
     </Grid>
   );
 }

@@ -31,7 +31,7 @@ mongoose.connect(
 );
 
 const allowCrossDomain = function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Origin", "http://localhost");
   res.header(
     "Access-Control-Allow-Methods",
     "GET, PUT, POST, DELETE, OPTIONS, PATCH"
@@ -52,7 +52,7 @@ const server = app.listen(8080);
 
 const io = socketio(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost",
     methods: ["GET", "POST"],
     credentials: true,
   }

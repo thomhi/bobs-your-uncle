@@ -32,7 +32,6 @@ export function SelectWinner({ choices, playCard, socket, decider, me }) {
                   return (
                     <Card key={card._id}>
                       <CardActionArea
-                        className={classes.selectedCard}
                         onClick={() => {
                           onSelect(entry[0]);
                         }}

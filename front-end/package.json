@@ -1,6 +1,5 @@
 {
-  "homepage": "http://thomhi.github.io/bobs-your-uncle",
-  "name": "front-end",
+  "name": "bobs-frontend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

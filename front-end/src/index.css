@@ -3,7 +3,6 @@
 * {
   margin: 0;
   font-family: "Quicksand";
-  color: #333;
 }
 
 .griditem {
@@ -14,10 +13,4 @@
 body {
   padding: 3%;
   background-color: #fafafa;
-}
-
-.play-card {
-  height: 30vh;
-  overflow-wrap: break-word;
-  overflow: hidden;
 }

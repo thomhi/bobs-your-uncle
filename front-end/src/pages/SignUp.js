@@ -110,7 +110,7 @@ export default function SignUp({
   };
 
   if (redirect) {
-    return <Redirect to={"/bobs-your-uncle"} />;
+    return <Redirect to={"/"} />;
   }
 
   return (
@@ -120,7 +120,7 @@ export default function SignUp({
         <Typography component="h1" variant="h5">
           Sign Up
         </Typography>
-        <form className={classes.form} action="/bobs-your-uncle">
+        <form className={classes.form} action="/">
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
@@ -252,7 +252,7 @@ export default function SignUp({
               "Sign Up"
             )}
           </Button>
-          <BackButton redirectPath={"/bobs-your-uncle/signIn"} />
+          <BackButton redirectPath={"/signIn"} />
         </form>
         {error && (
           <Error

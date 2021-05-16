@@ -1,27 +1,39 @@
 import { useEffect, useState } from "react";
-import { Button, Grid /*TextField*/ } from "@material-ui/core";
+import { Button, Container, Grid /*TextField*/ } from "@material-ui/core";
 import { Players } from "../components/Players";
 // import { gameSettings } from "../businessLogic/GameSettingsService";
 import { Redirect } from "react-router";
 import PlayGame from "../components/PlayGame";
 import { gameStyle } from "../styles/styles";
 import { localStorageService } from "../businessLogic/LocalStroageService";
-import {socket} from "../businessLogic/socket";
-
+import { socket } from "../businessLogic/socket";
 
 const DEFAULT = {
-  playCard: {_id: 1, content: "why is there a _______ in my __________???", numberOfFields: 2},
-  handcards: [{_id: 2, content: "fridge" }],
-  winnerCards: [{content: "apple", _id: 3}, {content: "food", _id:4}],
+  playCard: {
+    _id: 1,
+    content: "why is there a _______ in my __________???",
+    numberOfFields: 2,
+  },
+  handcards: [{ _id: 2, content: "fridge" }],
+  winnerCards: [
+    { content: "apple", _id: 3 },
+    { content: "food", _id: 4 },
+  ],
   roundWinner: "KingAbi",
-  pointsPerPlayer: new Map([
-    ["abi", 12],
-    ["thomas", 7],
-    ["JooooeeeEEEEEElllll", 5],
-    ["Tschounes", -1532],
-  ]),
+  pointsPerPlayer: {
+    abi: 12,
+    thomas: 7,
+    JooooeeeEEEEEElllll: 5,
+    Jonas: -1532,
+  },
   choices: new Map([
-    ['abi', [{content: 'apple', _id: 5 }, {content: 'food', _id: 6}]],
+    [
+      "abi",
+      [
+        { content: "apple", _id: 5 },
+        { content: "food", _id: 6 },
+      ],
+    ],
   ]),
 };
 
@@ -45,7 +57,6 @@ export default function Lobby() {
   const [choices, setChoices] = useState(DEFAULT.choices);
 
   useEffect(() => {
-    console.log('joinRoom');
     socket.emit("joinRoom", {
       room: localStorageService.getRoom(),
     });
@@ -53,12 +64,12 @@ export default function Lobby() {
     socket.on("playersInLobby", ({ users }) => {
       setPlayers(users);
     });
-  
+
     socket.on("isDecider", (isDecider) => {
       console.log(`socket.on(idecider) isDecider: ${isDecider}`);
       setDecider(isDecider);
     });
-  
+
     socket.on("handOutCards", ({ questionCard, currentHand }) => {
       if (questionCard && currentHand) {
         setHandCards(currentHand);
@@ -70,21 +81,23 @@ export default function Lobby() {
       setPlayState("selectCard");
       setPlaying(true);
     });
-  
+
     socket.on("choices", (cards) => {
       console.log(`socket.on(choices) as Map: ${cards}`);
       console.log(cards);
       console.table(cards);
-      if(cards){
-      setChoices(cards);
+      if (cards) {
+        setChoices(cards);
       } else {
         setChoices(DEFAULT.choices);
       }
       setPlayState("showSelectedCards");
     });
-  
+
     socket.on("winnerAnnouncement", ({ winnerUsername, cards }) => {
-      console.log(`socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`);
+      console.log(
+        `socket.on(winnerAnnouncement) winner: ${winnerUsername}\nwith : ${cards}`
+      );
       console.log(winnerUsername);
       console.table(cards);
       if (winnerUsername && cards) {
@@ -100,30 +113,29 @@ export default function Lobby() {
         setPlayState("showWinner");
       }
     });
-  
+
     socket.on("score", (score) => {
+      console.table(score);
       console.log(score);
-      if (score.size > 0) {
+      if (score) {
+        setPointsPerPlayer(0);
         setPointsPerPlayer(score);
       }
-    });  
+    });
 
-    // return function cleanup() {
-    //   console.log(
-    //     `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
-    //   );
-    //   localStorageService.exitRoom();
-    //   setExitLobby(true);
-    // };
     return () => {
-      socket.off('playersInLobby');
-      socket.off('isDecider');
-      socket.off('handOutCards');
-      socket.off('choices');
-      socket.off('winnerAnnouncement');
-      socket.off('score');
-   };
-  },[]);
+      socket.off("playersInLobby");
+      socket.off("isDecider");
+      socket.off("handOutCards");
+      socket.off("choices");
+      socket.off("winnerAnnouncement");
+      socket.off("score");
+      console.log(
+        `${localStorageService.getUserId()} exit room ${localStorageService.getRoom()}`
+      );
+      localStorageService.exitRoom();
+    };
+  }, []);
 
   const onPlayGame = () => {
     socket.emit("startGame");
@@ -136,37 +148,40 @@ export default function Lobby() {
 
   if (playing) {
     return (
-      <PlayGame
-        playState={playState}
-        playCard={playCard}
-        handCards={handCards}
-        winnerCards={winnerCards}
-        roundWinner={roundWinner}
-        decider={decider}
-        pointsPerPlayer={pointsPerPlayer}
-        choices={choices}
-        me={player}
-        socket={socket}
-      ></PlayGame>
+      <Container className={classes.container}>
+        <h1 style={{textAlign: 'right'}}>{player}</h1>
+        <PlayGame
+          playState={playState}
+          playCard={playCard}
+          handCards={handCards}
+          winnerCards={winnerCards}
+          roundWinner={roundWinner}
+          decider={decider}
+          pointsPerPlayer={pointsPerPlayer}
+          choices={choices}
+          me={player}
+          socket={socket}
+          setPlayState={setPlayState}
+        ></PlayGame>
+      </Container>
     );
   }
 
   if (exitLobby) {
     socket.emit("exitLobby", localStorageService.getUserId());
-    return <Redirect to={"/bobs-your-uncle"}></Redirect>;
+    return <Redirect to={"/"}></Redirect>;
   }
 
   return (
     <Grid
       className={classes.paper}
       container
-      alignItems="center"
       justify="space-evenly"
       spacing={5}
     >
-      <h1>{`Room: ${room}`}</h1>
+      <h1 className={classes.title}>{`Room: ${room}`}</h1>
       <Players players={players} />
-      <form className="gameSettings" action="/bobs-your-uncle/playGame">
+      <form className="gameSettings" action="/playGame">
         <Grid container item alignContent="center" spacing={5} justify="center">
           {/* <Grid item className="gridItem" xs={4}>
             <TextField
@@ -193,7 +208,7 @@ export default function Lobby() {
               fullWidth
               id="play-game-button"
               variant="contained"
-              color="secondary"
+              color="primary"
               onClick={onPlayGame}
               disabled={players.length < 2}
             >

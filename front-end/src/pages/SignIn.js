@@ -29,7 +29,7 @@ export default function SignIn({
   const [passwordShow, setPasswordShow] = useState(false);
   const [passwordUnchanged, setPasswordUnchanged] = useState(true);
   const [redirect, setRedirect] = useState(false);
-  const [redirectPath, setRedirectPath] = useState("/bobs-your-uncle");
+  const [redirectPath, setRedirectPath] = useState("/");
   const [isLoading, setIsLoading] = useState(false);
   const [errorStatusCode, setErrorStatusCode] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -71,7 +71,7 @@ export default function SignIn({
   };
 
   const onSignUp = () => {
-    setRedirectPath("/bobs-your-uncle/signUp");
+    setRedirectPath("/signUp");
     setRedirect(true);
   };
 
