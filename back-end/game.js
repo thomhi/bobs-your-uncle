@@ -13,6 +13,7 @@ class Game {
   gameStarted=false;
   roundStarted=false;
   alreadyReceived=false;
+  receivedCardsFrom=[];
 
   NUMBER_OF_PLAYER_CARDS = 12;
 
@@ -84,6 +85,7 @@ class Game {
 
   startRoundMain(publishQuestionCard) {
     if (this.roundStarted) return;
+    this.receivedCardsFrom = [];
     this.roundStarted = true;
     this.receivedCardsNum = 0;
     this.alreadyReceived = false;
@@ -110,6 +112,7 @@ class Game {
 
   startRoundWithQuestionCard(questionCard) {
     if (this.roundStarted) return;
+    this.receivedCardsFrom = [];
     this.roundStarted = true;
     this.receivedCardsNum = 0;
     this.alreadyReceived = false;
@@ -131,34 +134,37 @@ class Game {
   }
 
   receivedCards(cards, username) {
-    if (cards.length > 0) {
-      this.receivedCardsNum++;
-
-      if (this.player[this.decider] !== username) {
-        if (this.sockets.get(username)) {
-          for (let j = 0; j < this.playerHands.get(username).length; j++) {
-            for (let i = 0; i < cards.length; i++) {
-              if (this.playerHands.get(username)[j]._id == cards[i]._id) {
-                const newPlayerHands = this.playerHands.get(username);
-                newPlayerHands[j] = this.answerCards[
-                  Math.floor(Math.random() * this.answerCards.length)
-                ];
-                this.playerHands.set(username, newPlayerHands);
-                break;
+    if (!this.receivedCardsFrom.includes(username)) {
+      this.receivedCardsFrom.push(username);
+      if (cards.length > 0) {
+        this.receivedCardsNum++;
+  
+        if (this.player[this.decider] !== username) {
+          if (this.sockets.get(username)) {
+            for (let j = 0; j < this.playerHands.get(username).length; j++) {
+              for (let i = 0; i < cards.length; i++) {
+                if (this.playerHands.get(username)[j]._id == cards[i]._id) {
+                  const newPlayerHands = this.playerHands.get(username);
+                  newPlayerHands[j] = this.answerCards[
+                    Math.floor(Math.random() * this.answerCards.length)
+                  ];
+                  this.playerHands.set(username, newPlayerHands);
+                  break;
+                }
               }
             }
           }
+          this.playerChosenHand.set(username, cards);
         }
-        this.playerChosenHand.set(username, cards);
-      }
-      if (this.receivedCardsNum == this.player.length - 1) {
-        const res = {};
-        for (let [key, values] of this.playerChosenHand){
-          res[key] = values;
+        if (this.receivedCardsNum == this.player.length - 1) {
+          const res = {};
+          for (let [key, values] of this.playerChosenHand){
+            res[key] = values;
+          }
+          this.sockets.forEach((value, key) => {
+            value.emit("choices", res);
+          });
         }
-        this.sockets.forEach((value, key) => {
-          value.emit("choices", res);
-        });
       }
     }
   }
