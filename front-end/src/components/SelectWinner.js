@@ -1,4 +1,4 @@
-import { Card, CardContent, Grid, CardActionArea } from "@material-ui/core";
+import { Card, Grid, CardActionArea } from "@material-ui/core";
 import { gameStyle } from "../styles/styles";
 import HandCard from "./HandCard";
 import { Waiting } from "./Waiting";
